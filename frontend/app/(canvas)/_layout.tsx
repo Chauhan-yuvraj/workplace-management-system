@@ -1,0 +1,37 @@
+import { router, Stack } from "expo-router";
+import { HomeIcon } from "lucide-react-native";
+import { Text, TouchableOpacity, View } from "react-native";
+
+export default function CanvasLayout() {
+  return (
+    <Stack
+      screenOptions={{
+        headerStyle: { backgroundColor: "#fff" },
+        headerTintColor: "#000",
+        headerTitleAlign: "center",
+      }}
+    >
+      <Stack.Screen
+        name="Canvas"
+        options={{
+          headerTitle: () => (
+            <Text style={{ fontSize: 18, fontWeight: "600", color: "#000" }}>
+              Provide your Valuable Feedback
+            </Text>
+          ),
+          headerLeft: () => (
+            <TouchableOpacity style={{ marginRight: 15 }}>
+              <View className="border border-black rounded-full p-2 active:bg-black/10">
+                <HomeIcon
+                  size={24}
+                  color="#555"
+                  onPress={() => router.replace("/")}
+                />
+              </View>
+            </TouchableOpacity>
+          ),
+        }}
+      />
+    </Stack>
+  );
+}
