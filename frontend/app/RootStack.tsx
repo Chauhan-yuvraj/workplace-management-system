@@ -19,7 +19,7 @@ function RootStack() {
         <Stack.Screen name="(guest)" options={{ headerShown: false }} />
         <Stack.Screen name="(canvas)" options={{ headerShown: false }} />
         <Stack.Screen name="(admin)" options={{ headerShown: false }} />
-
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen
           name="modal"
           options={{ presentation: "modal", title: "Modal" }}

@@ -1,7 +1,6 @@
 import { Stack } from "expo-router";
 import { Text } from "react-native";
-// Import the new button component
-import CreateGuestButton from "@/components/CreateGuestButton";
+
 
 export default function GuestLayout() {
   // REMOVE: const router = useRouter(); // NO LONGER NEEDED HERE

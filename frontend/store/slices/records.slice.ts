@@ -4,6 +4,7 @@ import {
 } from "@/services/feedback.service";
 
 import { FeedbackRecord, UserRecord, SerializablePathData, SerializableCanvasPage } from '../types/feedback';
+import { getRecordsFromAPI } from '@/services/records.service';
 
 interface RecordsState {
   records: FeedbackRecord[];
@@ -22,6 +23,14 @@ type SaveRecordPayload = {
   canvasPages: SerializableCanvasPage[];
   signaturePaths: SerializablePathData[];
 };
+
+
+export const getRecords = createAsyncThunk(
+  'records/getRecords',
+  async () => {
+    const records = await getRecordsFromAPI();
+    return records as FeedbackRecord[];
+  })
 
 // Thunk to save a new record
 export const saveRecord = createAsyncThunk(
@@ -95,6 +104,8 @@ const recordsSlice = createSlice({
       });
   },
 });
+
+
 
 export default recordsSlice.reducer;
 export { toggleFeature };
