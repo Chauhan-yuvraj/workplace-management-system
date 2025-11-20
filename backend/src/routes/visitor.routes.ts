@@ -8,7 +8,7 @@ const app = express();
 
 const router = Router();
 // Example route
-// router.post("/", getVisitor);
+// router.get("/", getVisitor);
 
 router.post("/", postVisitor);
 
