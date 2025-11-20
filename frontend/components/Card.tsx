@@ -1,8 +1,14 @@
 import { View, Text, Image } from "react-native";
-import React from "react";
-import { Eye,  Star, Trash2 } from "lucide-react-native";
+import React, { useEffect } from "react";
+import { Eye, Star, Trash2 } from "lucide-react-native";
+import { FeedbackRecord, UserRecord } from "@/store/types/feedback";
 
-export default function Card() {
+export default function Card({ record }: { record: FeedbackRecord }) {
+
+  useEffect(() => {
+    console.log("Record in Card component:", record);
+  }, [record]);
+
   return (
     <View className="h-full bg-white/70 border border-gray-300 rounded-lg flex items-center p-4">
       <View>
@@ -13,13 +19,13 @@ export default function Card() {
       </View>
       <View className="flex w-full py-4  items-start">
         <Text className="text-3xl font-bold text-left max-w-[90%]">
-          Chauhan yuvraj Singh
+          {record?.guestName}
         </Text>
         <Text className="text-sm text-gray-600 mt-1">
-          Visited on: 2024-06-15
+          {record?.guestEmail || "No Email Provided"}
         </Text>
         <Text className="text-sm text-gray-600 mt-1">
-          Abhyuday Bharat Groups
+          {record?.guestCompany || "No Company Provided"}
         </Text>
       </View>
       <View className="flex flex-row w-full border min-h-52 rounded-md  justify-between mt-4">

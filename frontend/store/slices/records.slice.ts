@@ -22,6 +22,7 @@ type SaveRecordPayload = {
   guestData: UserRecord;
   canvasPages: SerializableCanvasPage[];
   signaturePaths: SerializablePathData[];
+  visitType: string;
 };
 
 
@@ -40,9 +41,9 @@ export const saveRecord = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const { guestData, canvasPages, signaturePaths } = data;
+      const { guestData, canvasPages, signaturePaths , visitType } = data;
 
-      const record = await saveUserRecord(guestData, canvasPages, signaturePaths);
+      const record = await saveUserRecord(guestData, canvasPages, signaturePaths, visitType);
       return record as FeedbackRecord;
 
     } catch (error: any) {
@@ -77,6 +78,18 @@ const recordsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Get Records
+      .addCase(getRecords.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(getRecords.fulfilled, (state, action: PayloadAction<FeedbackRecord[]>) => {
+        state.status = 'succeeded';
+        state.records = action.payload;
+      })
+      .addCase(getRecords.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message || null;
+      })
       // Save Record
       .addCase(saveRecord.pending, (state) => {
         state.status = 'loading';

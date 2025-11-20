@@ -4,7 +4,6 @@ export interface UserRecord {
     guestPhone?: string;
     guestEmail?: string;
     guestCompany?: string;
-    timestamp?: string;
     featured?: boolean;
 }
 export interface FeedbackRecord {
@@ -12,6 +11,7 @@ export interface FeedbackRecord {
     guest: UserRecord;
     pages: SerializableCanvasPage[];
     signature: SerializablePathData[];
+    visitType? : string;      
 }
 
 
