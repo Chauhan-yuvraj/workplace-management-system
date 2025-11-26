@@ -12,7 +12,7 @@ export default function HomeScreen() {
   useEffect(() => {
     const timeout = setTimeout(() => {
       console.log("Attempting to prefetch login page...");
-      router.replace("/(admin)/Options");
+      router.replace("/(admin)/Dashboard");
     }, 100); // Wait r
 
     return () => clearTimeout(timeout);

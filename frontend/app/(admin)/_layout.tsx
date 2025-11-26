@@ -1,7 +1,6 @@
 import { router, Stack } from "expo-router";
-import { Bell, HomeIcon } from "lucide-react-native";
+import { HomeIcon } from "lucide-react-native";
 import { Text, TouchableOpacity, View } from "react-native";
-import { Avatar, Badge } from "react-native-paper";
 
 export default function AdminLayout() {
   return (
@@ -24,7 +23,7 @@ export default function AdminLayout() {
       />
 
       <Stack.Screen
-        name="Options"
+        name="Dashboard"
         options={{
           headerLeft: () => (
             <TouchableOpacity style={{ marginRight: 15 }}>
