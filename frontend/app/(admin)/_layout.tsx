@@ -1,6 +1,7 @@
 import { router, Stack } from "expo-router";
-import { HomeIcon } from "lucide-react-native";
+import { Bell, HomeIcon } from "lucide-react-native";
 import { Text, TouchableOpacity, View } from "react-native";
+import { Avatar, Badge } from "react-native-paper";
 
 export default function AdminLayout() {
   return (
@@ -38,7 +39,7 @@ export default function AdminLayout() {
           ),
           headerTitle: () => (
             <Text style={{ fontSize: 18, fontWeight: "600", color: "#000" }}>
-              Admin Options
+              Dashboard
             </Text>
           ),
         }}

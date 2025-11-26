@@ -1,30 +1,59 @@
 import React from "react";
-import { Button } from "react-native-paper";
-import { PressableProps } from "react-native";
+import { Button, ListIconProps } from "react-native-paper";
+import { Text, View } from "react-native";
 
-interface ButtonProps {
+interface ButtonUIProps {
   text: string;
+  icon?: ListIconProps["icon"]; // Paper icons
+  LucideIcon?: React.ComponentType<{
+    size?: number;
+    color?: string;
+    strokeWidth?: number;
+  }>;
+  iconSize?: number;
+  color?: string;
+  textColor?: string;
   onPress?: () => void;
+  borderColor?: string;
+  borderWidth?: number;
 }
 
-export default function ButtonUI({ text, onPress }: ButtonProps) {
+export default function ButtonUI({
+  text,
+  icon,
+  LucideIcon,
+  iconSize = 18,
+  color,
+  textColor = "#ffffff",
+  onPress,
+  borderColor = "black",
+  borderWidth = 1,
+}: ButtonUIProps) {
   return (
     <Button
+      className="flex flex-row "
       mode="contained"
-      buttonColor="#10b981" // Equivalent to Tailwind's green-500
-      textColor="#ffffff" // White text
+      icon={icon} // Paper icon works natively
+      buttonColor={color || "#10b981"}
+      textColor={textColor}
       style={{
         borderRadius: 8,
         paddingVertical: 4,
         elevation: 5,
+        borderColor,
+        borderWidth,
       }}
-      labelStyle={{
-        fontSize: 16,
-        fontWeight: "600", // Semi-bold text
-      }}
+      labelStyle={{ fontSize: 16, fontWeight: "600" }}
       onPress={onPress}
     >
-      {text}
+      <View className="flex flex-row gap-x-4">
+        {LucideIcon && (
+          <View className="">
+            <LucideIcon size={iconSize} color={textColor} strokeWidth={2} />
+          </View>
+        )}
+        <Text>{text}</Text>
+      </View>
     </Button>
   );
 }

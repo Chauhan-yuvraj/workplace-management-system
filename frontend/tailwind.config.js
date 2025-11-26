@@ -11,7 +11,15 @@ module.exports = {
   ],
   presets: [require("nativewind/preset")],
   theme: {
-    extend: {},
+   extend: {
+      colors: {
+        primary: '#111827', // Off-black
+        secondary: '#6B7280', // Soft Gray
+        background: '#F3F4F6', // Light Gray Bg
+        surface: '#ffffff', // White
+        accent: '#6366f1', // Indigo
+      },
+    },
   },
   plugins: [],
 };
