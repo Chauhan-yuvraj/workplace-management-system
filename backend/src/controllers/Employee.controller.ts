@@ -3,6 +3,8 @@ import { Employee } from "../models/employees.model";
 import bcrypt from 'bcrypt'
 
 
+export const GetMe = async (req: Request, res: Response) => { }
+
 export const GetEmployee = async (req: Request, res: Response) => {
     try {
         const employee = await Employee.findById(req.params.id);
@@ -125,18 +127,18 @@ export const DeleteEmployee = async (req: Request, res: Response) => {
 export const UpdateEmployee = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        
+
         // 1. Remove 'timestamps' from here. Mongoose handles it automatically.
-        const { 
-            name, email, phone, profileImgUri, 
-            department, jobTitle, role, isActive, password 
+        const {
+            name, email, phone, profileImgUri,
+            department, jobTitle, role, isActive, password
         } = req.body;
 
         // 2. Optimization: Check if body is empty to save DB call
         if (Object.keys(req.body).length === 0) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "No fields provided for update" 
+            return res.status(400).json({
+                success: false,
+                message: "No fields provided for update"
             });
         }
 
@@ -149,7 +151,7 @@ export const UpdateEmployee = async (req: Request, res: Response) => {
         if (department) updatedData.department = department;
         if (jobTitle) updatedData.jobTitle = jobTitle;
         if (role) updatedData.role = role;
-        
+
         // Keep this! Logic is perfect for booleans.
         if (isActive !== undefined) updatedData.isActive = isActive;
 
@@ -161,8 +163,8 @@ export const UpdateEmployee = async (req: Request, res: Response) => {
 
         // 3. Perform Update
         const updatedEmployee = await Employee.findByIdAndUpdate(
-            id, 
-            updatedData, 
+            id,
+            updatedData,
             { new: true, runValidators: true } // runValidators ensures Role is valid (ADMIN, HOST...)
         ).select('-password');
 
@@ -182,17 +184,17 @@ export const UpdateEmployee = async (req: Request, res: Response) => {
     } catch (error: any) {
         // 4. Handle Duplicate Email Error specificallly
         if (error.code === 11000) {
-            return res.status(409).json({ 
-                success: false, 
-                message: "Email already exists" 
+            return res.status(409).json({
+                success: false,
+                message: "Email already exists"
             });
         }
 
         // 5. Handle Invalid ID format (CastError)
         if (error.name === 'CastError') {
-             return res.status(400).json({ 
-                success: false, 
-                message: "Invalid Employee ID" 
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Employee ID"
             });
         }
 
@@ -203,3 +205,13 @@ export const UpdateEmployee = async (req: Request, res: Response) => {
         });
     }
 }
+
+export const GetActiveHostList = async (req: Request, res: Response) => {
+    const hosts = await Employee.find({ role: "HOST", isActive: true }).select('name profileImgUri _id jobTitle').sort('name');
+    res.status(200).json({
+        success: true,
+        data: hosts
+    });
+}
+
+export const BulkImportEmployees = async (req: Request, res: Response) => { }
