@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 import bcrypt from "bcrypt";
-import { IEmployee } from "../types/Employee";
+import { IEmployee, UserRole } from "../types/Employee";
 
 // 2. The Methods Interface (Just the custom functions)
 export interface IEmployeeMethods {
@@ -28,8 +28,8 @@ const EmployeeSchema = new Schema<IEmployee, EmployeeModel, IEmployeeMethods>(
 
     role: {
       type: String,
-      enum: ["ADMIN", "HOST", "SECURITY", "RECEPTION"],
-      default: "HOST",
+      enum: Object.values(UserRole),
+      default: UserRole.EMPLOYEE,
       trim: true,
     },
 

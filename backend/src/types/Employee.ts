@@ -1,14 +1,21 @@
-  export interface IEmployee {
-    name: string;
-    email: string;
-    phone?: string;
-    profileImgUri?: string;
-    department?: string;
-    jobTitle?: string;
-    role: "ADMIN" | "HOST" | "SECURITY" | "RECEPTION";
-    requiresPasswordChange: boolean;
-    password?: string;
-    isActive: boolean;
-    createdAt?: Date;
-    updatedAt?: Date;
-  }
+export interface IEmployee {
+  name: string;
+  email: string;
+  phone?: string;
+  profileImgUri?: string;
+  department?: string;
+  jobTitle?: string;
+  role: UserRole;
+  requiresPasswordChange: boolean;
+  password?: string;
+  isActive: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export enum UserRole {
+  EMPLOYEE = 'employee',
+  HR = 'hr',
+  ADMIN = 'admin',
+  EXECUTIVE = 'executive' // Your "Top Management"
+}

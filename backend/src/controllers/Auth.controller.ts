@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Employee } from "../models/employees.model";
+import generateToken from "../utils/generateToken";
 
 export const Login = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -38,7 +39,8 @@ export const Login = async (req: Request, res: Response): Promise<void> => {
         jobTitle: user.jobTitle,
         profileImgUri: user.profileImgUri,
         isActive: user.isActive,
-        requiresPasswordChange: user.requiresPasswordChange 
+        requiresPasswordChange: user.requiresPasswordChange,
+        token: generateToken(user._id.toString())
       },
     });
 
