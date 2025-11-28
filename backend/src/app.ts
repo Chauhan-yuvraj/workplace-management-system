@@ -4,9 +4,11 @@ import visitorRoutes from "./routes/visitor.routes";
 import recordsRoutes from "./routes/records.routes";
 import employeeRoutes from "./routes/Employee.routes"
 import authRoutes from "./routes/Auth.routes"
+import cookieParser from "cookie-parser";
 
 
 const app = express();
+app.use(cookieParser());
 
 app.use(cors({
     origin: '*', // Allow all origins in development
