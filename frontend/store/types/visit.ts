@@ -8,6 +8,11 @@ export interface VisitSnapshot {
     department?: string;
 }
 
+export interface VisitFeedback {
+    rating?: number;
+    comment?: string;
+}
+
 export interface Visit {
     _id: string;
     visitor: VisitSnapshot;
@@ -19,6 +24,7 @@ export interface Visit {
     isWalkIn: boolean;
     purpose?: string;
     meetingMinutes?: string;
+    feedback?: VisitFeedback;
     createdAt: string;
     updatedAt: string;
 }
@@ -39,4 +45,5 @@ export interface UpdateVisitPayload {
     actualCheckOut?: string;
     isWalkIn?: boolean;
     purpose?: string;
+    feedback?: VisitFeedback;
 }

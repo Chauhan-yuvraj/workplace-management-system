@@ -11,7 +11,8 @@ export interface FeedbackRecord {
     guest: UserRecord;
     pages: SerializableCanvasPage[];
     signature: SerializablePathData[];
-    visitType? : string;      
+    visitType? : string;
+    feedbackText?: string;
 }
 
 

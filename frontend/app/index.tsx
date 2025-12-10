@@ -1,22 +1,20 @@
 import Background from "@/components/Background";
 import Buttons from "@/components/Buttons";
-import ParallaxRow from "@/components/ParallaxRow";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { User } from "lucide-react-native";
-import { useEffect } from "react";
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      console.log("Attempting to prefetch login page...");
-      router.replace("/(admin)/Dashboard");
-    }, 100); // Wait r
+  // useEffect(() => {
+  //   const timeout = setTimeout(() => {
+  //     console.log("Attempting to prefetch login page...");
+  //     router.replace("/(admin)/Dashboard");
+  //   }, 100); // Wait r
 
-    return () => clearTimeout(timeout);
-  }, []);
+  //   return () => clearTimeout(timeout);
+  // }, []);
 
   return (
     <Background>
@@ -56,7 +54,7 @@ export default function HomeScreen() {
           <View className="">
             <Buttons
               text="Get Started"
-              onClick={() => router.push("/(canvas)/Canvas")}
+              onClick={() => router.push("/(guest)/selectVisit")}
             />
           </View>
         </View>

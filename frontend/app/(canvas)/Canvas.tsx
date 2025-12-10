@@ -1,35 +1,41 @@
 import { router } from "expo-router";
-import React, { useRef } from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import React, { useRef, useState } from "react";
+import {
+  Alert,
+  StyleSheet,
+  View,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+} from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/store/store";
+import { updateVisitThunk } from "@/store/slices/visit.slice";
+import { saveRecord } from "@/store/slices/records.slice";
 
-// Import serialization utilities and types (These must be correctly implemented)
-import { serializesPath, serializesCanvasPages } from "@/utils/serializationUtils";
-import { SerializablePathData, SerializableCanvasPage } from "@/store/types/feedback"; 
+// Import serialization utilities and types
+import { serializesPath } from "@/utils/serializationUtils";
+import { SerializablePathData } from "@/store/types/feedback";
 
 import Whitebg from "@/assets/background-pattern/Whitebg";
-import ColorPalette from "@/components/colorPalette";
-import SelectMode from "@/components/SelectMode";
-import SelectTool from "@/components/SelectTool";
 import SignatureCanvas, {
   SignatureCanvasRef,
 } from "@/components/SignatureCanvas";
 import ButtonUI from "@/components/ui/button";
-import DrawingCanvas, { DrawingCanvasRef } from "@/components/ui/DrawingCanavs";
 
 export default function CanvasScreen() {
-  const canvasRef = useRef<DrawingCanvasRef>(null);
   const signatureRef = useRef<SignatureCanvasRef>(null);
+  const [feedbackText, setFeedbackText] = useState("");
+  const dispatch = useDispatch<AppDispatch>();
+  const { selectedVisit } = useSelector((state: RootState) => state.visits);
 
-  const undoLastPath = () => canvasRef.current?.undo();
-  const clearCanvas = () => canvasRef.current?.clear();
-  const redoPath = () => canvasRef.current?.redo();
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const rawSignaturePaths = signatureRef.current?.getSignature() || [];
     const hasSignature = signatureRef.current?.hasSignature();
-    const rawCanvasPages = canvasRef.current?.getAllPages() || [];
 
     if (!hasSignature || rawSignaturePaths.length === 0) {
       Alert.alert("Action Required", "Please provide a signature.");
@@ -37,8 +43,6 @@ export default function CanvasScreen() {
     }
 
     // --- 1. Signature Serialization ---
-
-    // Filter out paths that are definitely invalid before attempting serialization
     const validSignaturePaths = rawSignaturePaths.filter(
       (pathData) =>
         pathData &&
@@ -54,7 +58,6 @@ export default function CanvasScreen() {
       return;
     }
 
-    // Use the utility function to serialize paths (serializesPath must handle PathData properties: path, color, strokeWidth)
     const serializedSignature: SerializablePathData[] = validSignaturePaths
       .map(serializesPath)
       .filter((p): p is SerializablePathData => p !== null);
@@ -67,68 +70,120 @@ export default function CanvasScreen() {
       return;
     }
 
-    console.log("Serialized signature paths count:", serializedSignature.length);
-    
-    // --- 2. Drawing Pages Serialization ---
-    
-    // Use the utility function to serialize all pages and their paths (serializesCanvasPages must return SerializableCanvasPage[])
-    const serializablePages: SerializableCanvasPage[] = serializesCanvasPages(rawCanvasPages);
+    // --- 2. Check for Selected Visit ---
+    if (selectedVisit) {
+      try {
+        // 1. Update Visit (Checkout & Feedback)
+        await dispatch(
+          updateVisitThunk({
+            id: selectedVisit._id,
+            payload: {
+              status: "CHECKED_OUT",
+              feedback: {
+                comment: feedbackText,
+                rating: 5, // Default rating
+              },
+            },
+          })
+        ).unwrap();
 
-    console.log("Serialized canvas pages count:", serializablePages.length);
+        // 2. Save Record (for historical/legal purposes with signature)
+        await dispatch(
+          saveRecord({
+            guestData: {
+              guestName: selectedVisit.visitor.name,
+              guestEmail: selectedVisit.visitor.email,
+              guestCompany: selectedVisit.visitor.company,
+              guestImgUri: selectedVisit.visitor.profileImgUri,
+            },
+            canvasPages: [],
+            signaturePaths: serializedSignature,
+            visitType: selectedVisit.purpose || "General",
+            feedbackText: feedbackText,
+          })
+        ).unwrap();
 
-
-    // --- 3. Navigation ---
-    router.push({
-      pathname: "/(canvas)/GuestData",
-      params: {
-        pages: JSON.stringify(serializablePages),
-        signature: JSON.stringify(serializedSignature),
-      },
-    });
+        Alert.alert("Success", "Thank you for your feedback!", [
+          { text: "OK", onPress: () => router.replace("/") },
+        ]);
+      } catch (error) {
+        console.error("Submission failed:", error);
+        Alert.alert("Error", "Failed to submit feedback. Please try again.");
+      }
+    } else {
+      // --- 3. Navigation (Old Flow) ---
+      router.push({
+        pathname: "/(canvas)/GuestData",
+        params: {
+          pages: JSON.stringify([]), // Empty pages as we removed drawing
+          signature: JSON.stringify(serializedSignature),
+          feedbackText: feedbackText,
+        },
+      });
+    }
   };
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <View
-        className="absolute inset-0 -z-10 opacity-50"
-        pointerEvents="none"
-      >
+      <View className="absolute inset-0 -z-10 opacity-50" pointerEvents="none">
         <Whitebg />
       </View>
 
       <SafeAreaView style={styles.content}>
-        <View className="flex-1 flex-row gap-4">
-          {/* Left Column */}
-          <View style={{ flex: 1 }} className="gap-y-6">
-            <View className="bg-white/10 p-1 rounded-lg">
-              <ColorPalette />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1, gap: 24 }}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Header */}
+            <View>
+              <Text className="text-2xl font-bold text-gray-800">
+                Your Feedback
+              </Text>
+              <Text className="text-gray-500">
+                Please write your feedback and sign below.
+              </Text>
             </View>
 
-            <View className="bg-white/10 rounded-lg">
-              <SelectTool
-                onUndo={undoLastPath}
-                onClear={clearCanvas}
-                onRedo={redoPath}
+            {/* Text Input Area */}
+            <View className="bg-white rounded-2xl p-4 border border-gray-200 min-h-[200px] shadow-sm">
+              <TextInput
+                multiline
+                placeholder="Write your feedback here..."
+                style={styles.textInput}
+                value={feedbackText}
+                onChangeText={setFeedbackText}
+                textAlignVertical="top"
               />
             </View>
 
-            <SignatureCanvas ref={signatureRef} />
-
-            <SelectMode />
-
+            {/* Signature Area */}
             <View className="gap-y-2">
-              <ButtonUI text="Submit" onPress={handleSubmit} />
+              <Text className="text-lg font-semibold text-gray-700">
+                Signature
+              </Text>
+              <View className="h-64 bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+                <SignatureCanvas ref={signatureRef} />
+              </View>
+              <View className="flex-row justify-end">
+                <Text
+                  onPress={() => signatureRef.current?.clear()}
+                  className="text-red-500 font-medium px-2 py-1"
+                >
+                  Clear Signature
+                </Text>
+              </View>
             </View>
-          </View>
 
-          {/* Right Column (Canvas) */}
-          <View
-            style={styles.canvasWrapper}
-            className="bg-white rounded-2xl overflow-hidden border border-white/20"
-          >
-            <DrawingCanvas ref={canvasRef} />
-          </View>
-        </View>
+            {/* Submit Button */}
+            <View className="mb-8">
+              <ButtonUI text={selectedVisit ? "Submit" : "Next"} onPress={handleSubmit} />
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </GestureHandlerRootView>
   );
@@ -138,11 +193,11 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 24,
-    position: "absolute",
-    width: "100%",
-    height: "100%",
   },
-  canvasWrapper: {
-    flex: 3,
+  textInput: {
+    flex: 1,
+    fontSize: 16,
+    color: "#333",
+    minHeight: 150,
   },
 });

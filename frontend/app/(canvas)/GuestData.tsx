@@ -22,7 +22,7 @@ import { deserializeRouterParam } from "@/utils/serializationUtils";
 import { useImagePicker } from "@/hooks/useImagePicker"; // Import the new hook
 
 export default function GuestData() {
-  const { pages, signature } = useLocalSearchParams();
+  const { pages, signature, feedbackText } = useLocalSearchParams();
 
   const canvasPages: SerializableCanvasPage[] = deserializeRouterParam(pages);
   const signaturePages: SerializablePathData[] =
@@ -68,7 +68,9 @@ export default function GuestData() {
           guestCompany: formData.company,
         },
         canvasPages,
-        signaturePaths: signaturePages, // Already serialized
+        signaturePaths: signaturePages,
+        visitType: "",
+        feedbackText: (feedbackText as string) || "",
       })
     );
   }

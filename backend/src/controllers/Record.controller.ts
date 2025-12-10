@@ -14,7 +14,7 @@ export const getRecords = async (req: Request, res: Response) => {
 }
 
 export const postRecord = async (req: Request, res: Response) => {
-    const { id, guest, signature, visitType, pages } = req.body;
+    const { id, guest, signature, visitType, pages, feedbackText } = req.body;
     try {
 
         const visitor = await Visitor.findOne({ email: guest.guestEmail });
@@ -37,7 +37,8 @@ export const postRecord = async (req: Request, res: Response) => {
                 timeStamp: new Date().toISOString(),
                 visitType,
                 signature,
-                pages
+                pages,
+                feedbackText
             });
             await newRecord.save();
             res.status(201).json({ message: "Record created successfully" });
@@ -50,7 +51,8 @@ export const postRecord = async (req: Request, res: Response) => {
                 timeStamp: new Date().toISOString(),
                 visitType,
                 signature,
-                pages
+                pages,
+                feedbackText
             });
             await newRecord.save();
             res.status(201).json({ message: "Record created successfully" });

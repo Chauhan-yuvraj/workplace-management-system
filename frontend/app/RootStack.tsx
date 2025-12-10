@@ -52,7 +52,7 @@ function RootStack() {
     } else if (isAuthenticated && inAuthGroup) {
       // User is authenticated but on login/signup page
       console.log('✅ Authenticated, redirecting to home');
-      router.replace('/(tabs)');
+      router.replace('/(admin)/Dashboard');
     }
   }, [isAuthenticated, segments, isLoading, router]);
 
@@ -71,6 +71,7 @@ function RootStack() {
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(guest)" options={{ headerShown: false }} />
         <Stack.Screen name="(canvas)" options={{ headerShown: false }} />

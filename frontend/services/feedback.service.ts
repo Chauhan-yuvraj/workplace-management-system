@@ -6,7 +6,8 @@ export async function saveUserRecord(
     guestData: UserRecord,
     canvasPages: SerializableCanvasPage[],
     signaturePaths: SerializablePathData[],
-    visitType: string = 'general'
+    visitType: string = 'general',
+    feedbackText?: string
 ): Promise<FeedbackRecord> {
     console.log('Starting API call to save user record...');
 
@@ -19,7 +20,8 @@ export async function saveUserRecord(
             guest: guestData,
             pages: canvasPages,
             signature: signaturePaths,
-            visitType: visitType
+            visitType: visitType,
+            feedbackText: feedbackText
         }
 
         const response = await API.post("/records", newRecord, {
