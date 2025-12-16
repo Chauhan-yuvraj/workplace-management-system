@@ -11,8 +11,9 @@ export function useEmployees() {
   const { employees, loading } = useAppSelector((s) => s.employees);
 
   useEffect(() => {
-    dispatch(fetchEmployeesThunk());
-  }, [dispatch]);
+    if (employees.length === 0)
+      dispatch(fetchEmployeesThunk());
+  }, [dispatch, employees.length]);
 
   const filteredData = useMemo(() => {
     const query = searchQuery.toLowerCase();

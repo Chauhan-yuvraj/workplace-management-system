@@ -12,11 +12,9 @@ import {
 
 import { useEmployees } from "@/hooks/Dashboard/employees/useEmployees";
 import { useEmployeeActions } from "@/hooks/Dashboard/employees/useEmployeeActions";
-import { Employee } from "@/store/types/user";
+import { Employee , UserRole } from "@/store/types/user";
 import { EmployeeCard } from "./EmployeeCard";
 import EmployeeForm from "./EmployeeForm";
-
-import { UserRole } from "@/store/types/user";
 
 export default function EmployeesList() {
   const { searchQuery, setSearchQuery, employees, loading, filterRole, setFilterRole } = useEmployees();
@@ -159,7 +157,7 @@ export default function EmployeesList() {
           initialData={selectedEmployee}
           onClose={() => setIsFormVisible(false)}
           onSubmit={handleFormSubmit}
-          isSubmitting={loading === 'pending'}
+          isSubmitting={loading}
         />
       </Modal>
     </View>
