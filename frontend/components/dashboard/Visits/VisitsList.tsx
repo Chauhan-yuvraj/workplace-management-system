@@ -14,6 +14,7 @@ import { VisitCard } from "./VisitCard";
 import VisitForm from "./VisitForm";
 import { Plus, Search, Filter } from "lucide-react-native";
 import { Visit } from "@/store/types/visit";
+import { DateFilter } from "../DateFilter";
 
 const STATUS_FILTERS = [
   "PENDING",
@@ -31,6 +32,10 @@ export default function VisitsList() {
     setSearchQuery,
     statusFilter,
     setStatusFilter,
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate
   } = useVisits();
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
@@ -97,7 +102,14 @@ export default function VisitsList() {
             />
           </TouchableOpacity>
         </View>
-
+        <DateFilter 
+          startDate={startDate} 
+          endDate={endDate} 
+          onFilterChange={(start, end) => {
+            setStartDate(start);
+            setEndDate(end);
+          }} 
+        />
         {/* Filter Options */}
         {isFilterVisible && (
           <View className="flex-row flex-wrap gap-2 mt-3">

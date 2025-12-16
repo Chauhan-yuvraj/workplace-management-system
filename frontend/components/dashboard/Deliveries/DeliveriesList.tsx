@@ -15,12 +15,15 @@ import {
 import { DeliveryCard } from "./DeliveryCard";
 import { Search, Filter, Package } from "lucide-react-native";
 import DeliveryForm from "./DeliveryForm";
+import { DateFilter } from "../DateFilter";
 
 export default function DeliveriesList() {
   const dispatch = useAppDispatch();
   const { deliveries, loading } = useAppSelector((state) => state.delivery);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
 
@@ -45,7 +48,30 @@ export default function DeliveriesList() {
 
     const matchesStatus = statusFilter ? d.status === statusFilter : true;
 
-    return matchesSearch && matchesStatus;
+    let matchesDate = true;
+    if (startDate) {
+      const deliveryDate = new Date(d.createdAt);
+      const dTime = deliveryDate.getTime();
+
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      const startTime = start.getTime();
+
+      let endTime;
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        endTime = end.getTime();
+      } else {
+        const end = new Date(startDate);
+        end.setHours(23, 59, 59, 999);
+        endTime = end.getTime();
+      }
+
+      matchesDate = dTime >= startTime && dTime <= endTime;
+    }
+
+    return matchesSearch && matchesStatus && matchesDate;
   });
 
   const STATUS_FILTERS = ["PENDING", "COLLECTED", "RETURNED", "REJECTED"];
@@ -98,7 +124,14 @@ export default function DeliveriesList() {
             />
           </TouchableOpacity>
         </View>
-
+        <DateFilter 
+          startDate={startDate} 
+          endDate={endDate} 
+          onFilterChange={(start, end) => {
+            setStartDate(start);
+            setEndDate(end);
+          }} 
+        />
         {/* Filter Options */}
         {isFilterVisible && (
           <View className="flex-row flex-wrap gap-2 mt-3">

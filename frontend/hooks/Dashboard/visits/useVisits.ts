@@ -7,6 +7,8 @@ export const useVisits = () => {
     const { visits, loading, error } = useAppSelector((state) => state.visits);
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState<string | null>(null);
+    const [startDate, setStartDate] = useState<Date | null>(null);
+    const [endDate, setEndDate] = useState<Date | null>(null);
 
     useEffect(() => {
         if (visits.length === 0)
@@ -22,7 +24,30 @@ export const useVisits = () => {
 
         const matchesStatus = statusFilter ? visit.status === statusFilter : true;
 
-        return matchesSearch && matchesStatus;
+        let matchesDate = true;
+        if (startDate) {
+            const visitDate = new Date(visit.scheduledCheckIn);
+            const vTime = visitDate.getTime();
+
+            const start = new Date(startDate);
+            start.setHours(0, 0, 0, 0);
+            const startTime = start.getTime();
+
+            let endTime;
+            if (endDate) {
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+                endTime = end.getTime();
+            } else {
+                const end = new Date(startDate);
+                end.setHours(23, 59, 59, 999);
+                endTime = end.getTime();
+            }
+
+            matchesDate = vTime >= startTime && vTime <= endTime;
+        }
+
+        return matchesSearch && matchesStatus && matchesDate;
     });
 
     return {
@@ -33,5 +58,9 @@ export const useVisits = () => {
         setSearchQuery,
         statusFilter,
         setStatusFilter,
+        startDate,
+        setStartDate,
+        endDate,
+        setEndDate
     };
 };
