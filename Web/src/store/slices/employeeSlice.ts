@@ -36,7 +36,7 @@ export const fetchEmployees = createAsyncThunk(
 
 export const addEmployee = createAsyncThunk(
   'employees/addEmployee',
-  async (employeeData: Partial<Employee>, { rejectWithValue }) => {
+  async (employeeData: Partial<Employee> | FormData, { rejectWithValue }) => {
     try {
       const response = await createEmployeeService(employeeData);
       return response;
@@ -48,7 +48,7 @@ export const addEmployee = createAsyncThunk(
 
 export const updateEmployee = createAsyncThunk(
   'employees/updateEmployee',
-  async ({ id, data }: { id: string; data: Partial<Employee> }, { rejectWithValue }) => {
+  async ({ id, data }: { id: string; data: Partial<Employee> | FormData }, { rejectWithValue }) => {
     try {
       const response = await updateEmployeeService(id, data);
       return response;

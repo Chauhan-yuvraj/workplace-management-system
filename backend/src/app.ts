@@ -17,7 +17,10 @@ const allowedOrigins = [
     'http://localhost:19006',       // Expo dev
     'exp://localhost:19000',        // Expo Go
     'http://10.0.2.2:3000',         // Android emulator
-    'http://localhost:3000'         // optional
+    'http://100.110.69.126:5173/',
+    'http://192.168.56.1:5173/',
+    'http://localhost:3000',         // optional
+
 ];
 
 app.use(cors({
@@ -32,7 +35,7 @@ app.use(cors({
         }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());

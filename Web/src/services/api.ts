@@ -67,7 +67,9 @@ export const setupInterceptors = (
         isRefreshing = true;
         try {
           const response = await API.post("/auth/refresh");
+          console.log("made the APi call")
           const newToken = response.data.accessToken;
+          console.log("Got the new Token", newToken)
           store.dispatch(refreshSuccess(newToken));
           processQueue(null, newToken);
 

@@ -1,9 +1,9 @@
 export interface IEmployee {
-  name: string;
-  email: string;
-  phone?: string;
-  profileImgUri?: string;
-  department?: string;
+    name: string;
+    email: string;
+    phone?: string;
+    profileImgUri?: string;
+    department?: string;
   jobTitle?: string;
   role: UserRole;
   requiresPasswordChange: boolean;
