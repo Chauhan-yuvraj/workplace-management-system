@@ -8,6 +8,7 @@ import Employees from "./pages/Dashbaord/Employees/Employees";
 import Visitors from "./pages/Dashbaord/Visitors/Visitors";
 import Visits from "./pages/Dashbaord/Visits/Visits";
 import Records from "./pages/Dashbaord/Records/Records";
+import Deliveries from "./pages/Dashbaord/Deliveries/Deliveries";
 import DashboardLayout from "./components/layout/DashboardLayout";
 
 export const router = createBrowserRouter([
@@ -42,6 +43,10 @@ export const router = createBrowserRouter([
           {
             path: "records",
             element: <Records />,
+          },
+          {
+            path: "deliveries",
+            element: <Deliveries />,
           },
         ],
       },
