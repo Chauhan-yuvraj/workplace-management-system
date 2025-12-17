@@ -1,0 +1,25 @@
+import type { Employee } from "@/types/user";
+import API from "./api";
+
+export interface LoginResponse {
+    success: boolean;
+    message: string;
+    user: Employee;
+    accessToken: string;
+}
+
+export const authService = {
+
+    login: async (email: string, password: string): Promise<LoginResponse> => {
+        const response = await API.post<LoginResponse>("/auth/login", {
+            email,
+            password,
+        });
+        return response.data;
+    },
+
+    refresh: async (): Promise<{ accessToken: string }> => {
+        const response = await API.post<{ accessToken: string }>("/auth/refresh");
+        return response.data;
+    }
+};
