@@ -4,6 +4,13 @@ import { addDelivery } from "@/store/slices/deliverySlice";
 import { fetchEmployees } from "@/store/slices/employeeSlice";
 import Modal from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface DeliveryModalProps {
   isOpen: boolean;
@@ -56,39 +63,45 @@ export default function DeliveryModal({ isOpen, onClose }: DeliveryModalProps) {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">Recipient</label>
-          <select
-            name="recipientId"
+          <Select
             value={formData.recipientId}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border rounded-md bg-background"
+            onValueChange={(value) =>
+              setFormData((prev) => ({ ...prev, recipientId: value }))
+            }
           >
-            <option value="">Select Employee</option>
-            {employees.map((emp) => (
-              <option key={emp._id} value={emp._id}>
-                {emp.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger>
+              <SelectValue placeholder="Select Employee" />
+            </SelectTrigger>
+            <SelectContent>
+              {employees.map((emp) => (
+                <SelectItem key={emp._id} value={emp._id}>
+                  {emp.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-1">Carrier</label>
-          <select
-            name="carrier"
+          <Select
             value={formData.carrier}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border rounded-md bg-background"
+            onValueChange={(value) =>
+              setFormData((prev) => ({ ...prev, carrier: value }))
+            }
           >
-            <option value="">Select Carrier</option>
-            <option value="DHL">DHL</option>
-            <option value="FEDEX">FedEx</option>
-            <option value="UPS">UPS</option>
-            <option value="AMAZON">Amazon</option>
-            <option value="FOOD">Food Delivery</option>
-            <option value="OTHER">Other</option>
-          </select>
+            <SelectTrigger>
+              <SelectValue placeholder="Select Carrier" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="DHL">DHL</SelectItem>
+              <SelectItem value="FEDEX">FedEx</SelectItem>
+              <SelectItem value="UPS">UPS</SelectItem>
+              <SelectItem value="AMAZON">Amazon</SelectItem>
+              <SelectItem value="FOOD">Food Delivery</SelectItem>
+              <SelectItem value="OTHER">Other</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div>

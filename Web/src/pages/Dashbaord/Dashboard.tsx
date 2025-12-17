@@ -5,6 +5,13 @@ import { fetchDeliveries } from "@/store/slices/deliverySlice";
 import { fetchEmployees } from "@/store/slices/employeeSlice";
 import { fetchVisitors } from "@/store/slices/visitorSlice";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Users,
   Package,
   CalendarCheck,
@@ -31,10 +38,12 @@ const Dashboard = () => {
   const { visitors } = useAppSelector((state) => state.visitors);
 
   useEffect(() => {
-    dispatch(fetchVisits({}));
-    dispatch(fetchDeliveries());
-    dispatch(fetchEmployees());
-    dispatch(fetchVisitors());
+    Promise.all([
+      dispatch(fetchVisits({})),
+      dispatch(fetchDeliveries()),
+      dispatch(fetchEmployees()),
+      dispatch(fetchVisitors()),
+    ]);
   }, [dispatch]);
 
   const stats = useMemo(() => {
@@ -45,9 +54,7 @@ const Dashboard = () => {
       v.scheduledCheckIn.startsWith(todayStr)
     ).length;
 
-    const activeVisits = visits.filter(
-      (v) => v.status === "CHECKED_IN"
-    ).length;
+    const activeVisits = visits.filter((v) => v.status === "CHECKED_IN").length;
 
     const pendingDeliveries = deliveries.filter(
       (d) => d.status === "PENDING"
@@ -164,12 +171,17 @@ const Dashboard = () => {
         <div className="lg:col-span-2 bg-card rounded-xl border shadow-sm p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="font-semibold text-lg">Weekly Visits Overview</h3>
-            <select className="text-sm border rounded-md px-2 py-1 bg-background">
-              <option>Last 7 Days</option>
-              <option>Last 30 Days</option>
-            </select>
+            <Select defaultValue="7days">
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7days">Last 7 Days</SelectItem>
+                <SelectItem value="30days">Last 30 Days</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div className="h-[300px] w-full">
+          <div className="h-75 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -277,7 +289,11 @@ function StatsCard({
     <div className="bg-card rounded-xl border shadow-sm p-6">
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-muted-foreground">{title}</p>
-        <Icon className={`h-4 w-4 ${alert ? "text-red-500" : "text-muted-foreground"}`} />
+        <Icon
+          className={`h-4 w-4 ${
+            alert ? "text-red-500" : "text-muted-foreground"
+          }`}
+        />
       </div>
       <div className="mt-2 flex items-baseline gap-2">
         <span className="text-2xl font-bold">{value}</span>

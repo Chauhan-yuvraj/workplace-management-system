@@ -3,6 +3,13 @@ import { useAppDispatch } from "@/store/hooks";
 import { addEmployee, updateEmployee } from "@/store/slices/employeeSlice";
 import Modal from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { UserRole, type Employee } from "@/types/user";
 import { Loader2 } from "lucide-react";
 
@@ -210,19 +217,23 @@ export default function EmployeeModal({
             <label htmlFor="role" className="text-sm font-medium text-gray-700">
               Role
             </label>
-            <select
-              id="role"
-              name="role"
+            <Select
               value={formData.role}
-              onChange={handleChange}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, role: value as UserRole }))
+              }
             >
-              {Object.values(UserRole).map((role) => (
-                <option key={role} value={role}>
-                  {role.charAt(0).toUpperCase() + role.slice(1)}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Role" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(UserRole).map((role) => (
+                  <SelectItem key={role} value={role}>
+                    {role.charAt(0).toUpperCase() + role.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

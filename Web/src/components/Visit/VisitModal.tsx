@@ -5,6 +5,13 @@ import { fetchVisitors } from "@/store/slices/visitorSlice";
 import { fetchEmployees } from "@/store/slices/employeeSlice";
 import Modal from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { Visit, VisitStatus } from "@/types/visit";
 
 interface VisitModalProps {
@@ -123,38 +130,44 @@ export default function VisitModal({
           <>
             <div className="space-y-2">
               <label className="text-sm font-medium">Visitor</label>
-              <select
-                name="visitorId"
+              <Select
                 value={formData.visitorId}
-                onChange={handleChange}
-                required
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, visitorId: value }))
+                }
               >
-                <option value="">Select Visitor</option>
-                {visitors.map((visitor) => (
-                  <option key={visitor._id} value={visitor._id}>
-                    {visitor.name} ({visitor.email})
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Visitor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {visitors.map((visitor) => (
+                    <SelectItem key={visitor._id} value={visitor._id}>
+                      {visitor.name} ({visitor.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Host (Employee)</label>
-              <select
-                name="hostId"
+              <Select
                 value={formData.hostId}
-                onChange={handleChange}
-                required
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, hostId: value }))
+                }
               >
-                <option value="">Select Host</option>
-                {employees.map((employee) => (
-                  <option key={employee._id} value={employee._id}>
-                    {employee.name} - {employee.department}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Host" />
+                </SelectTrigger>
+                <SelectContent>
+                  {employees.map((employee) => (
+                    <SelectItem key={employee._id} value={employee._id}>
+                      {employee.name} - {employee.department}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </>
         )}
@@ -185,18 +198,23 @@ export default function VisitModal({
         {visitToEdit && (
           <div className="space-y-2">
             <label className="text-sm font-medium">Status</label>
-            <select
-              name="status"
+            <Select
               value={formData.status}
-              onChange={handleChange}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, status: value as VisitStatus }))
+              }
             >
-              <option value="PENDING">Pending</option>
-              <option value="CHECKED_IN">Checked In</option>
-              <option value="CHECKED_OUT">Checked Out</option>
-              <option value="DECLINED">Declined</option>
-              <option value="MISSED">Missed</option>
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="CHECKED_IN">Checked In</SelectItem>
+                <SelectItem value="CHECKED_OUT">Checked Out</SelectItem>
+                <SelectItem value="DECLINED">Declined</SelectItem>
+                <SelectItem value="MISSED">Missed</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         )}
 
