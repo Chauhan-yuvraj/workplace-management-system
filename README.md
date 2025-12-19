@@ -1,52 +1,136 @@
-# Turborepo starter
+# Workplace Management System
 
-This Turborepo starter is maintained by the Turborepo core team.
+A comprehensive full-stack solution for managing workplace operations, including visitor management, employee administration, and digital feedback collection. This monorepo contains the backend API, a mobile application for kiosks, and a web-based admin dashboard.
 
-## Using this example
+## 🚀 Project Structure
 
-Run the following command:
+This project is a monorepo managed by [TurboRepo](https://turbo.build/) and [pnpm](https://pnpm.io/).
 
-```sh
-npx create-turbo@latest
+```text
+.
+├── apps/
+│   ├── backend/    # Express.js API server with MongoDB
+│   ├── Mobile/     # React Native (Expo) app for tablets/kiosks
+│   └── Web/        # React (Vite) admin dashboard
+└── packages/
+    ├── types/      # Shared TypeScript interfaces and types
+    ├── ui/         # Shared UI components
+    └── ...         # Shared configurations (eslint, typescript)
 ```
 
-## What's inside?
+## 🛠 Tech Stack
 
-This Turborepo includes the following packages/apps:
+### Backend (`apps/backend`)
+-   **Runtime:** Node.js
+-   **Framework:** Express.js
+-   **Database:** MongoDB (Mongoose)
+-   **Language:** TypeScript
+-   **Authentication:** JWT, bcrypt
+-   **Storage:** Cloudinary (for images)
 
-### Apps and Packages
+### Mobile (`apps/Mobile`)
+-   **Framework:** React Native (Expo)
+-   **Styling:** NativeWind (Tailwind CSS)
+-   **State Management:** Redux Toolkit
+-   **Graphics:** React Native Skia (for signatures & drawing)
+-   **Navigation:** Expo Router
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+### Web (`apps/Web`)
+-   **Framework:** React (Vite)
+-   **Styling:** Tailwind CSS
+-   **State Management:** Redux Toolkit
+-   **Routing:** React Router DOM
+-   **Charts:** Recharts
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+## 📋 Prerequisites
 
-### Utilities
+-   Node.js (>= 18)
+-   pnpm (`npm install -g pnpm`)
+-   MongoDB (Local or Atlas)
+-   Cloudinary Account
 
-This Turborepo has some additional tools already setup for you:
+## ⚙️ Installation & Setup
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+1.  **Clone the repository:**
+    ```bash
+    git clone <repository-url>
+    cd workplace-management-system
+    ```
 
-### Build
+2.  **Install dependencies:**
+    ```bash
+    pnpm install
+    ```
 
-To build all apps and packages, run the following command:
+3.  **Environment Configuration:**
+    Create `.env` files in the respective app directories based on their requirements.
 
+    *   **Backend (`apps/backend/.env`):**
+        ```env
+        PORT=5000
+        MONGO_URI=your_mongodb_connection_string
+        JWT_SECRET=your_jwt_secret
+        CLOUDINARY_CLOUD_NAME=...
+        CLOUDINARY_API_KEY=...
+        CLOUDINARY_API_SECRET=...
+        ```
+
+    *   **Mobile (`apps/Mobile/.env`):**
+        ```env
+        EXPO_PUBLIC_API_URL=http://<your-ip>:5000/api
+        ```
+
+    *   **Web (`apps/Web/.env`):**
+        ```env
+        VITE_API_URL=http://localhost:5000/api
+        ```
+
+## 🚀 Running the Project
+
+You can run the entire monorepo or individual applications.
+
+### Run All Apps (Development Mode)
+```bash
+pnpm dev
 ```
-cd my-turborepo
+This command uses TurboRepo to start the backend, web, and mobile apps concurrently.
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
+### Run Individual Apps
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
-```
+*   **Backend:**
+    ```bash
+    cd apps/backend
+    pnpm dev
+    ```
+
+*   **Mobile:**
+    ```bash
+    cd apps/Mobile
+    pnpm start
+    ```
+    *Press `a` for Android, `i` for iOS, or `w` for Web.*
+
+*   **Web:**
+    ```bash
+    cd apps/Web
+    pnpm dev
+    ```
+
+## ✨ Key Features
+
+*   **Visitor Management:** Digital check-in/out for guests.
+*   **Employee Directory:** Manage employee records and roles.
+*   **Digital Feedback:** Collect feedback with signatures and drawings using the mobile kiosk.
+*   **Role-Based Access:** Secure access for Employees, HR, Admins, and Executives.
+*   **Real-time Updates:** Instant data synchronization across platforms.
+
+## 🤝 Contributing
+
+1.  Fork the repository.
+2.  Create a new branch (`git checkout -b feature/amazing-feature`).
+3.  Commit your changes (`git commit -m 'Add some amazing feature'`).
+4.  Push to the branch (`git push origin feature/amazing-feature`).
+5.  Open a Pull Request.
 
 You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
 
