@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "rootDir": "src",
+    "outDir": "dist",
+    "esModuleInterop": true,
+    "strict": true,
+    
+    /* ADD THESE SETTINGS */
+    "moduleResolution": "node",        // Helps TS resolve modules like Node does
+    "resolveJsonModule": true,         // Allows importing .json files if needed
+    "skipLibCheck": true,              // Skips type checking of declaration files (speeds up build)
+    "forceConsistentCasingInFileNames": true, // Prevents errors on case-sensitive file systems (Linux/Mac)
+    "baseUrl": ".",
+    "paths": {
+      "@repo/types": ["../../packages/types/src"]
+    },
+    
+    /* CRITICAL FOR REQ.USER */
+    // This allows TS to look in your custom types folder as well as node_modules
+    "typeRoots": ["./src/types", "./node_modules/@types"] 
+  },
+  "include": ["src/**/*"],             // Compile everything in src
+  "exclude": ["node_modules", "dist"]  // Don't compile these
+}
