@@ -5,8 +5,18 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { PageControls } from "@/components/ui/PageControls";
 import { EmployeeGrid } from "@/components/Employee/EmployeeGrid";
 import { EmployeeList } from "@/components/Employee/EmployeeList";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { PermissionGuard } from "@/components/auth/PermissionGuard";
+import { usePermission } from "@/hooks/auth/usePermission";
 
 export default function Employees() {
+  const { hasPermission } = usePermission();
   const {
     employees,
     isLoading,
@@ -14,6 +24,8 @@ export default function Employees() {
     setViewMode,
     searchQuery,
     setSearchQuery,
+    statusFilter,
+    setStatusFilter,
     isModalOpen,
     setIsModalOpen,
     isProfileModalOpen,
@@ -30,8 +42,8 @@ export default function Employees() {
       <PageHeader 
         title="Employees" 
         description="Manage your team members and their roles." 
-        actionLabel="Add Employee" 
-        onAction={handleAddEmployee} 
+        actionLabel={hasPermission('manage_employees') ? "Add Employee" : undefined} 
+        onAction={hasPermission('manage_employees') ? handleAddEmployee : undefined} 
       />
 
       <EmployeeModal
@@ -54,7 +66,25 @@ export default function Employees() {
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         searchPlaceholder="Search employees..."
-      />
+      >
+        <PermissionGuard permission="manage_employees">
+          <Select
+            value={statusFilter}
+            onValueChange={(value: "active" | "inactive" | "all") =>
+              setStatusFilter(value)
+            }
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Active Employees</SelectItem>
+              <SelectItem value="inactive">Inactive Employees</SelectItem>
+              <SelectItem value="all">All Employees</SelectItem>
+            </SelectContent>
+          </Select>
+        </PermissionGuard>
+      </PageControls>
 
       {isLoading ? (
         <div className="flex justify-center items-center h-64">

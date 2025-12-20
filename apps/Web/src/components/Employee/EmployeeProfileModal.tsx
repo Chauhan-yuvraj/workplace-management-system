@@ -2,6 +2,7 @@ import Modal from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { User, Mail, Phone, Building, Shield, Trash2, Edit } from "lucide-react";
 import type { Employee } from "@/types/user";
+import { PermissionGuard } from "../auth/PermissionGuard";
 
 interface EmployeeProfileModalProps {
   isOpen: boolean;
@@ -106,20 +107,22 @@ export default function EmployeeProfileModal({
         </div>
 
         {/* Actions */}
-        <div className="flex w-full gap-3 pt-2">
-          <Button
-            variant="outline"
-            className="flex-1 gap-2 border-destructive text-destructive hover:bg-destructive/10"
-            onClick={handleDelete}
-          >
-            <Trash2 className="h-4 w-4" />
-            Delete
-          </Button>
-          <Button className="flex-1 gap-2" onClick={() => onEdit(employee)}>
-            <Edit className="h-4 w-4" />
-            Edit Profile
-          </Button>
-        </div>
+        <PermissionGuard permission="manage_employees">
+          <div className="flex w-full gap-3 pt-2">
+            <Button
+              variant="outline"
+              className="flex-1 gap-2 border-destructive text-destructive hover:bg-destructive/10"
+              onClick={handleDelete}
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </Button>
+            <Button className="flex-1 gap-2" onClick={() => onEdit(employee)}>
+              <Edit className="h-4 w-4" />
+              Edit Profile
+            </Button>
+          </div>
+        </PermissionGuard>
       </div>
     </Modal>
   );

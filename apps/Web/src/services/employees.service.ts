@@ -46,6 +46,7 @@ export const updateEmployee = async (id: string, employeeData: Partial<Employee>
 };
 
 export const deleteEmployee = async (id: string): Promise<void> => {
+  console.log("Employee the employee")
   await API.delete(`/employees/${id}`);
 };
 

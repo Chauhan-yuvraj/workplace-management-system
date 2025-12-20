@@ -21,5 +21,10 @@ export const authService = {
     refresh: async (): Promise<{ accessToken: string }> => {
         const response = await API.post<{ accessToken: string }>("/auth/refresh");
         return response.data;
+    },
+
+    getMe: async (): Promise<{ success: boolean; data: Employee }> => {
+        const response = await API.get<{ success: boolean; data: Employee }>("/employees/me");
+        return response.data;
     }
 };

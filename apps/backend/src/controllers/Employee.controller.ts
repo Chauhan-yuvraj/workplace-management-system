@@ -84,12 +84,13 @@ export const PostEmployee = async (req: Request, res: Response) => {
         res.status(201).json({
             success: true,
             message: "Employee created successfully.",
-            employee: {
+            data: {
                 id: employee._id,
                 name: employee.name,
                 email: employee.email,
                 role: employee.role,
-                profileImgUri: employee.profileImgUri
+                profileImgUri: employee.profileImgUri,
+                password: finalPassword // Return the generated password
             }
         });
 
@@ -120,6 +121,7 @@ export const DeleteEmployee = async (req: Request, res: Response) => {
                 message: "Employee not found"
             });
         }
+        console.log("employee Deleted : ", employee.name)
         res.status(200).json({
             success: true,
             message: "Employee deactivated  successfully",
@@ -148,13 +150,13 @@ export const UpdateEmployee = async (req: Request, res: Response) => {
         // 1. Define exactly what can be updated to prevent "Over-posting" attacks
         // (e.g., preventing a user from changing their own 'isAdmin' flag if you didn't check it)
         const allowedUpdates = [
-            'name', 'email', 'phone', 'profileImgUri', 
+            'name', 'email', 'phone', 'profileImgUri',
             'department', 'jobTitle', 'role', 'isActive'
         ];
 
         // 2. Filter req.body to only include allowed fields
         const updates: Record<string, any> = {};
-        
+
         Object.keys(req.body).forEach((key) => {
             if (allowedUpdates.includes(key)) {
                 updates[key] = req.body[key];
@@ -188,7 +190,7 @@ export const UpdateEmployee = async (req: Request, res: Response) => {
 
         // Handle boolean conversion for isActive if it comes as string
         if (updates.isActive !== undefined) {
-             updates.isActive = updates.isActive === 'true' || updates.isActive === true;
+            updates.isActive = updates.isActive === 'true' || updates.isActive === true;
         }
 
         // 5. Perform Update

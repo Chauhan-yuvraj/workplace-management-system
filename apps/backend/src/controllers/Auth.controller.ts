@@ -31,7 +31,7 @@ export const Login = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Generate tokens
-    const accessToken = generateAccessToken(user._id.toString());
+    const accessToken = generateAccessToken(user._id.toString(), user.role);
     const refreshToken = generateRefreshToken(user._id.toString());
 
     user.refreshToken = refreshToken;
@@ -105,7 +105,7 @@ export const RefreshAccessToken = async (req: Request, res: Response): Promise<v
           res.status(403).json({ success: false, message: "Forbidden, token expired" });
           return;
         }
-        const accessToken = generateAccessToken(user._id.toString());
+        const accessToken = generateAccessToken(user._id.toString(), user.role);
         res.status(200).json({ success: true, accessToken });
       }
     )

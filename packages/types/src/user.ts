@@ -13,17 +13,17 @@ export interface IEmployee {
   phone?: string;
   department?: string;
   jobTitle?: string;
-  role: UserRole | string;
+  role: UserRole;
   isActive: boolean;
   profileImgUri?: string;
   createdAt?: string | Date;
   updatedAt?: string | Date;
-  
+
   // Backend specific
   requiresPasswordChange?: boolean;
   password?: string;
   refreshToken?: string;
-  
+
   // Frontend specific
   status?: "Active" | "On Leave" | "Inactive";
 }

@@ -1,10 +1,20 @@
 import { createSlice, createAsyncThunk, } from '@reduxjs/toolkit';
 import { authService } from '../../services/auth.service';
 import type { Employee } from '@/types/user';
+import { jwtDecode } from "jwt-decode";
+
+interface DecodedToken {
+    id: string;
+    role: string;
+    permissions: string[];
+    iat: number;
+    exp: number;
+}
 
 interface AuthState {
     user: Employee | null;
     token: string | null;
+    permissions: string[];
     isAuthenticated: boolean;
     isLoading: boolean;
     error: string | null;
@@ -13,6 +23,7 @@ interface AuthState {
 const initialState: AuthState = {
     user: null,
     token: null,
+    permissions: [],
     isAuthenticated: false,
     isLoading: false,
     error: null,
@@ -32,6 +43,18 @@ export const loginUser = createAsyncThunk(
     }
 );
 
+export const fetchCurrentUser = createAsyncThunk(
+    'auth/fetchCurrentUser',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await authService.getMe();
+            return response.data;
+        } catch (error: unknown) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
 const authSlice = createSlice({
     name: 'auth',
     initialState,
@@ -39,10 +62,20 @@ const authSlice = createSlice({
         refreshSuccess: (state, action) => {
             state.token = action.payload;
             state.isAuthenticated = true;
+            if (action.payload) {
+                try {
+                    const decoded = jwtDecode<DecodedToken>(action.payload);
+                    state.permissions = decoded.permissions || [];
+                } catch (error) {
+                    console.error("Failed to decode token", error);
+                    state.permissions = [];
+                }
+            }
         },
         logout: (state) => {
             state.user = null;
             state.token = null;
+            state.permissions = [];
             state.isAuthenticated = false;
             state.isLoading = false;
             state.error = null;
@@ -62,6 +95,16 @@ const authSlice = createSlice({
                 state.isAuthenticated = true;
                 state.user = action.payload.user;
                 state.token = action.payload.accessToken;
+                if (action.payload.accessToken) {
+                    try {
+                        const decoded = jwtDecode<DecodedToken>(action.payload.accessToken);
+                        state.permissions = decoded.permissions || [];
+                        console.log(state.permissions)
+                    } catch (error) {
+                        console.error("Failed to decode token", error);
+                        state.permissions = [];
+                    }
+                }
                 state.error = null;
             })
             .addCase(loginUser.rejected, (state, action) => {
@@ -69,7 +112,21 @@ const authSlice = createSlice({
                 state.isAuthenticated = false;
                 state.user = null;
                 state.token = null;
+                state.permissions = [];
                 state.error = action.payload as string;
+            })
+            .addCase(fetchCurrentUser.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(fetchCurrentUser.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isAuthenticated = true;
+                state.user = action.payload;
+            })
+            .addCase(fetchCurrentUser.rejected, (state) => {
+                state.isLoading = false;
+                state.isAuthenticated = false;
+                state.user = null;
             });
     },
 });

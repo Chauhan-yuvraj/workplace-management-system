@@ -6,20 +6,20 @@ import {
   DeleteVisitor,
   UpdateVisitor
 } from "../controllers/Visitor.controller";
-import { authorize, protect } from "../middleware/auth.middleware";
+import { checkPermission, protect } from "../middleware/auth.middleware";
 import { upload } from "../middleware/multer.middleware";
 
 const router = Router();
 
 router
   .route("/")
-  .get(protect, authorize('hr', 'admin', 'executive'), GetVisitors)
-  .post(protect, authorize('hr', 'admin', 'executive'), upload.single('profileImg'), PostVisitor);
+  .get(protect, checkPermission('manage_visitors'), GetVisitors)
+  .post(protect, checkPermission('manage_visitors'), upload.single('profileImg'), PostVisitor);
 
 router
   .route("/:id")
-  .get(protect, authorize('hr', 'admin', 'executive'), GetVisitor)
-  .patch(protect, authorize('hr', 'admin', 'executive'), upload.single('profileImg'), UpdateVisitor)
-  .delete(protect, authorize('hr', 'admin', 'executive'), DeleteVisitor);
+  .get(protect, checkPermission('manage_visitors'), GetVisitor)
+  .patch(protect, checkPermission('manage_visitors'), upload.single('profileImg'), UpdateVisitor)
+  .delete(protect, checkPermission('manage_visitors'), DeleteVisitor);
 
 export default router;

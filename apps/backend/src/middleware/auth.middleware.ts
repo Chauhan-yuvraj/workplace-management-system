@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import jwt from 'jsonwebtoken'
 import { Employee } from "../models/employees.model";
+import { ROLE_PERMISSIONS } from "@repo/types";
 
 interface DecodedToken {
     id: string;
@@ -40,20 +41,24 @@ export const protect = async (req: Request, res: Response, next: Function) => {
 };
 
 
-export const authorize = (...roles:string[]) => {
-    return (req: Request, res: Response, next: Function) => {
 
-        if (!req.user) {
-            res.status(401).json({ message: "Not authorized" });
-            return;
+
+
+export const checkPermission = (...requiredPermission: string[]) => {
+    return (req: Request, res: Response, next: Function) => {
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({ message: "Not authorized" });
         }
 
-        if(!roles.includes(req.user.role)) {
-            res.status(403).json({ message: `Forbidden: User role ${req.user.role} does not have the required role`});
-            return;
+        const userPermissions = ROLE_PERMISSIONS[user.role] || [];
+
+        const hasAccess = userPermissions.includes('all') || userPermissions.some(permissions => requiredPermission.includes(permissions));
+
+        if (!hasAccess) {
+            return res.status(403).json({ message: "Forbidden: You do not have the required permission" });
         }
 
         next();
     }
-
 }

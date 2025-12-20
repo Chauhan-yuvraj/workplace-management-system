@@ -9,6 +9,7 @@ export const useEmployees = () => {
 
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"active" | "inactive" | "all">("active");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
@@ -41,14 +42,22 @@ export const useEmployees = () => {
   };
 
   const filteredEmployees = useMemo(() => {
-    return employees.filter(
-      (employee) =>
-        employee &&
-        (employee.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          employee.jobTitle?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          employee.department?.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
-  }, [employees, searchQuery]);
+    return employees.filter((employee) => {
+      if (!employee) return false;
+
+      // Status Filter
+      if (statusFilter === "active" && !employee.isActive) return false;
+      if (statusFilter === "inactive" && employee.isActive) return false;
+
+      // Search Filter
+      const matchesSearch =
+        employee.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        employee.jobTitle?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        employee.department?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      return matchesSearch;
+    });
+  }, [employees, searchQuery, statusFilter]);
 
   return {
     employees: filteredEmployees,
@@ -57,6 +66,8 @@ export const useEmployees = () => {
     setViewMode,
     searchQuery,
     setSearchQuery,
+    statusFilter,
+    setStatusFilter,
     isModalOpen,
     setIsModalOpen,
     isProfileModalOpen,

@@ -2,8 +2,10 @@ import { NavLink } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sidebarItems } from "@/constants/dashboard/navigation";
+import { useAppSelector } from "@/store/hooks";
 
 export function Sidebar() {
+  const { user } = useAppSelector((state) => state.auth);
   return (
     <div className="w-64 bg-background border-r border-border flex flex-col h-screen sticky top-0">
       <div className="p-6 flex flex-col items-center gap-2">
@@ -15,24 +17,26 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 px-4 space-y-1">
-        {sidebarItems.map((item) => (
-          <NavLink
-            key={item.href}
-            to={item.href}
-            end={item.href === "/dashboard"}
-            className={({ isActive }) =>
-              cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-secondary text-secondary-foreground"
-                  : "text-muted-foreground hover:bg-secondary/50 hover:text-secondary-foreground"
-              )
-            }
-          >
-            <item.icon className="h-4 w-4" />
-            {item.label}
-          </NavLink>
-        ))}
+        {sidebarItems
+          .filter((item) => user?.role && (item.roles as readonly string[]).includes(user.role))
+          .map((item) => (
+            <NavLink
+              key={item.href}
+              to={item.href}
+              end={item.href === "/dashboard"}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-secondary text-secondary-foreground"
+                    : "text-muted-foreground hover:bg-secondary/50 hover:text-secondary-foreground"
+                )
+              }
+            >
+              <item.icon className="h-4 w-4" />
+              {item.label}
+            </NavLink>
+          ))}
       </nav>
 
       <div className="p-4 border-t border-border">

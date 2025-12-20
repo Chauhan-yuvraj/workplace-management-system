@@ -27,6 +27,7 @@ export default function EmployeeModal({
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [createdPassword, setCreatedPassword] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -60,6 +61,7 @@ export default function EmployeeModal({
       });
     }
     setSelectedFile(null);
+    setCreatedPassword(null);
   }, [employeeToEdit, isOpen]);
 
   const handleChange = (
@@ -96,17 +98,46 @@ export default function EmployeeModal({
         await dispatch(
           updateEmployee({ id: employeeToEdit._id || "", data: submitData })
         ).unwrap();
+        onClose();
       } else {
-        await dispatch(addEmployee(submitData)).unwrap();
+        const result = await dispatch(addEmployee(submitData)).unwrap();
+        if (result && result.password) {
+          setCreatedPassword(result.password);
+        } else {
+          onClose();
+        }
       }
-
-      onClose();
     } catch (error) {
       console.error("Failed to save employee:", error);
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (createdPassword) {
+    return (
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Employee Created Successfully"
+      >
+        <div className="space-y-4">
+          <div className="p-4 bg-green-50 border border-green-200 rounded-md">
+            <p className="text-sm text-green-800 mb-2">
+              The employee has been created. Please share these credentials with them immediately as the password will not be shown again.
+            </p>
+            <div className="space-y-1">
+              <p className="text-sm font-medium">Email: <span className="font-normal">{formData.email}</span></p>
+              <p className="text-sm font-medium">Password: <span className="font-mono bg-white px-2 py-1 rounded border select-all">{createdPassword}</span></p>
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={onClose}>Close</Button>
+          </div>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal

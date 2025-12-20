@@ -8,6 +8,7 @@ interface PageControlsProps {
   viewMode?: "grid" | "list";
   onViewModeChange?: (mode: "grid" | "list") => void;
   searchPlaceholder?: string;
+  children?: React.ReactNode;
 }
 
 export const PageControls: React.FC<PageControlsProps> = ({
@@ -16,6 +17,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
   viewMode,
   onViewModeChange,
   searchPlaceholder = "Search...",
+  children,
 }) => {
   return (
     <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
@@ -30,32 +32,35 @@ export const PageControls: React.FC<PageControlsProps> = ({
         />
       </div>
 
-      {viewMode && onViewModeChange && (
-        <div className="flex items-center border rounded-md bg-background p-1">
-          <button
-            onClick={() => onViewModeChange("grid")}
-            className={`p-2 rounded-sm transition-colors ${
-              viewMode === "grid"
-                ? "bg-secondary text-secondary-foreground shadow-sm"
-                : "text-muted-foreground hover:bg-secondary/50"
-            }`}
-            title="Grid View"
-          >
-            <LayoutGrid className="h-4 w-4" />
-          </button>
-          <button
-            onClick={() => onViewModeChange("list")}
-            className={`p-2 rounded-sm transition-colors ${
-              viewMode === "list"
-                ? "bg-secondary text-secondary-foreground shadow-sm"
-                : "text-muted-foreground hover:bg-secondary/50"
-            }`}
-            title="List View"
-          >
-            <List className="h-4 w-4" />
-          </button>
-        </div>
-      )}
+      <div className="flex items-center gap-4">
+        {children}
+        {viewMode && onViewModeChange && (
+          <div className="flex items-center border rounded-md bg-background p-1">
+            <button
+              onClick={() => onViewModeChange("grid")}
+              className={`p-2 rounded-sm transition-colors ${
+                viewMode === "grid"
+                  ? "bg-secondary text-secondary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-secondary/50"
+              }`}
+              title="Grid View"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => onViewModeChange("list")}
+              className={`p-2 rounded-sm transition-colors ${
+                viewMode === "list"
+                  ? "bg-secondary text-secondary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-secondary/50"
+              }`}
+              title="List View"
+            >
+              <List className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

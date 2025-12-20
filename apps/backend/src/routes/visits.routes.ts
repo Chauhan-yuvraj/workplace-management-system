@@ -6,19 +6,19 @@ import {
     UpdateVisit,
     DeleteVisit
 } from "../controllers/Visit.controller";
-import { authorize, protect } from "../middleware/auth.middleware";
+import { checkPermission, protect } from "../middleware/auth.middleware";
 
 const router = Router();
 
 router
     .route("/")
-    .get(protect, GetVisits) 
-    .post(protect, ScheduleVisit); // Any employee can schedule a visit?
+    .get(protect, checkPermission('manage_visits', 'view_self_visits'), GetVisits) 
+    .post(protect, checkPermission('manage_visits', 'view_self_visits'), ScheduleVisit); // Any employee can schedule a visit?
 
 router
     .route("/:id")
-    .get(protect, GetVisit)
-    .patch(protect, UpdateVisit)
-    .delete(protect, authorize('hr', 'admin', 'executive'), DeleteVisit); // Only admins/HR can delete history
+    .get(protect, checkPermission('manage_visits', 'view_self_visits'), GetVisit)
+    .patch(protect, checkPermission('manage_visits', 'view_self_visits'), UpdateVisit)
+    .delete(protect, checkPermission('manage_visits'), DeleteVisit); // Only admins/HR can delete history
 
 export default router;
