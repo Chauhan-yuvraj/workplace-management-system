@@ -1,0 +1,6 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "turbo run build",
+  "installCommand": "pnpm install",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./"
+}
