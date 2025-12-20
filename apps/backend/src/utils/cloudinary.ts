@@ -10,15 +10,22 @@ export const uploadFileToCloudinary = async (fileBuffer: Buffer, resourceType: '
         // Convert Buffer to Blob
         const blob = new Blob([fileBuffer]);
 
+        const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+        const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
+
+        if (!cloudName || !uploadPreset) {
+            throw new Error("Cloudinary configuration missing in environment variables");
+        }
+
         formData.append('file', blob, 'upload');
-        formData.append('upload_preset', 'Abhyuday');
-        formData.append('cloud_name', 'drmhveetn');
+        formData.append('upload_preset', uploadPreset);
+        formData.append('cloud_name', cloudName);
 
         // Cloudinary API URL: https://api.cloudinary.com/v1_1/<cloud_name>/<resource_type>/upload
         // Audio is treated as 'video' in Cloudinary
         const type = resourceType === 'audio' ? 'video' : resourceType;
 
-        const response = await fetch(`https://api.cloudinary.com/v1_1/drmhveetn/${type}/upload`, {
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/${type}/upload`, {
             method: "POST",
             body: formData
         });
