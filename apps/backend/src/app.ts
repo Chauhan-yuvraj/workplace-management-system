@@ -20,7 +20,7 @@ const allowedOrigins = [
     'http://100.110.69.126:5173/',
     'http://192.168.56.1:5173/',
     'http://localhost:3000',         // optional
-
+    process.env.FRONTEND_URL || 'https://workplace-management-system-website.onrender.com' // Production Frontend
 ];
 
 app.use(cors({

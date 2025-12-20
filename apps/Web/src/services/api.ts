@@ -1,7 +1,7 @@
 import axios from "axios";
 import type { Store, ActionCreatorWithPayload, ActionCreatorWithoutPayload } from "@reduxjs/toolkit";
 
-const API_URL = "http://localhost:3000/api"; // Adjust if needed
+const API_URL = import.meta.env.VITE_API_URL;
 
 const API = axios.create({
   baseURL: API_URL,
