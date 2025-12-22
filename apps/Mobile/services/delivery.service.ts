@@ -12,6 +12,6 @@ export const createDelivery = async (data: CreateDeliveryPayload): Promise<Deliv
 };
 
 export const updateDeliveryStatus = async (id: string, status: string): Promise<Delivery> => {
-    const response = await API.put(`/deliveries/${id}/status`, { status });
+    const response = await API.patch(`/deliveries/${id}/status`, { status });
     return response.data;
 };

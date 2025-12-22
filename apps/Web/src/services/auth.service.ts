@@ -28,3 +28,7 @@ export const authService = {
         return response.data;
     }
 };
+
+export const updatePassword = async (password: string): Promise<void> => {
+    await API.patch(`/employees/me`, { password });
+};

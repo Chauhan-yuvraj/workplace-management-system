@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchEmployees, deleteEmployee } from "@/store/slices/employeeSlice";
+import { fetchEmployees, deleteEmployee, toggleEmployeeStatus } from "@/store/slices/employeeSlice";
 import type { Employee } from "@/types/user";
 
 export const useEmployees = () => {
@@ -41,6 +41,14 @@ export const useEmployees = () => {
     setIsProfileModalOpen(false);
   };
 
+  const handleToggleStatus = async (employeeId: string) => {
+    await dispatch(toggleEmployeeStatus(employeeId));
+    // Update selected employee if it's the one being toggled
+    if (selectedEmployee && selectedEmployee._id === employeeId) {
+      setSelectedEmployee(prev => prev ? { ...prev, isActive: !prev.isActive } : null);
+    }
+  };
+
   const filteredEmployees = useMemo(() => {
     return employees.filter((employee) => {
       if (!employee) return false;
@@ -77,5 +85,6 @@ export const useEmployees = () => {
     handleEmployeeClick,
     handleEditFromProfile,
     handleDeleteEmployee,
+    handleToggleStatus,
   };
 };

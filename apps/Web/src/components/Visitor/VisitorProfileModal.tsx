@@ -2,6 +2,17 @@ import Modal from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { User, Mail, Phone, Building, FileText, Trash2, Edit, ShieldAlert, Star } from "lucide-react";
 import type { Visitor } from "@/types/visitor";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface VisitorProfileModalProps {
   isOpen: boolean;
@@ -19,13 +30,6 @@ export default function VisitorProfileModal({
   onDelete,
 }: VisitorProfileModalProps) {
   if (!visitor) return null;
-
-  const handleDelete = () => {
-    if (window.confirm("Are you sure you want to delete this visitor?")) {
-      onDelete(visitor._id);
-      onClose();
-    }
-  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Visitor Profile">
@@ -113,14 +117,34 @@ export default function VisitorProfileModal({
 
         {/* Actions */}
         <div className="flex w-full gap-3 pt-2">
-          <Button
-            variant="outline"
-            className="flex-1 gap-2 border-destructive text-destructive hover:bg-destructive/10"
-            onClick={handleDelete}
-          >
-            <Trash2 className="h-4 w-4" />
-            Delete
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="flex-1 gap-2 border-destructive text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the visitor profile.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => {
+                  onDelete(visitor._id);
+                  onClose();
+                }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <Button className="flex-1 gap-2" onClick={() => onEdit(visitor)}>
             <Edit className="h-4 w-4" />
             Edit Profile

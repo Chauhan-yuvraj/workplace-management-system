@@ -6,8 +6,10 @@ import {
   DeleteEmployee,
   UpdateEmployee,
   GetMe,
+  UpdateMe,
   GetActiveHostList,
-  BulkImportEmployees
+  BulkImportEmployees,
+  ToggleEmployeeStatus
 } from "../controllers/Employee.controller";
 import { checkPermission, protect } from "../middleware/auth.middleware";
 import { upload } from "../middleware/multer.middleware";
@@ -15,6 +17,7 @@ import { upload } from "../middleware/multer.middleware";
 const router = Router();
 
 router.get("/me", protect, GetMe)
+router.patch("/me", protect, upload.single('profileImg'), UpdateMe)
 
 // 2. For lightweight Kiosk Dropdown (Name, Avatar, ID only)  
 router.get("/active-list", protect, checkPermission('manage_employees'), GetActiveHostList);
@@ -53,6 +56,6 @@ router
     checkPermission('manage_employees'),
     DeleteEmployee); // Delete employee
 
-
+router.patch("/:id/toggle-status", protect, checkPermission('manage_employees'), ToggleEmployeeStatus);
 
 export default router;

@@ -12,7 +12,7 @@ export const createDelivery = async (payload: CreateDeliveryPayload): Promise<De
 };
 
 export const updateDeliveryStatus = async (id: string, status: string): Promise<Delivery> => {
-  const response = await API.put<Delivery>(`/deliveries/${id}/status`, { status });
+  const response = await API.patch<Delivery>(`/deliveries/${id}/status`, { status });
   return response.data;
 };
 

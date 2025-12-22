@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 
-import { 
-  getEmployees, 
-  createEmployee as createEmployeeService, 
-  updateEmployee as updateEmployeeService, 
-  deleteEmployee as deleteEmployeeService 
+import {
+  getEmployees,
+  createEmployee as createEmployeeService,
+  updateEmployee as updateEmployeeService,
+  deleteEmployee as deleteEmployeeService,
+  toggleEmployeeStatus as toggleEmployeeStatusService
 } from '../../services/employees.service';
 import type { Employee } from '@/types/user';
 
@@ -66,6 +67,18 @@ export const deleteEmployee = createAsyncThunk(
       return id;
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to delete employee');
+    }
+  }
+);
+
+export const toggleEmployeeStatus = createAsyncThunk(
+  'employees/toggleStatus',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await toggleEmployeeStatusService(id);
+      return response;
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Failed to toggle employee status');
     }
   }
 );
@@ -136,6 +149,13 @@ const employeeSlice = createSlice({
       .addCase(deleteEmployee.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+      })
+      // Toggle Status
+      .addCase(toggleEmployeeStatus.fulfilled, (state, action: PayloadAction<Employee>) => {
+        const index = state.employees.findIndex((emp) => emp._id === action.payload._id);
+        if (index !== -1) {
+          state.employees[index] = action.payload;
+        }
       });
   },
 });

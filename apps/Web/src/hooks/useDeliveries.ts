@@ -8,6 +8,9 @@ export const useDeliveries = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
   useEffect(() => {
     dispatch(fetchDeliveries());
   }, [dispatch]);
@@ -18,9 +21,16 @@ export const useDeliveries = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this delivery record?")) {
-      await dispatch(deleteDelivery(id));
+  const openDeleteAlert = (id: string) => {
+    setDeleteId(id);
+    setIsDeleteAlertOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteId) {
+      await dispatch(deleteDelivery(deleteId));
+      setIsDeleteAlertOpen(false);
+      setDeleteId(null);
     }
   };
 
@@ -40,6 +50,9 @@ export const useDeliveries = () => {
     isModalOpen,
     setIsModalOpen,
     handleStatusUpdate,
-    handleDelete,
+    openDeleteAlert,
+    confirmDelete,
+    isDeleteAlertOpen,
+    setIsDeleteAlertOpen,
   };
 };

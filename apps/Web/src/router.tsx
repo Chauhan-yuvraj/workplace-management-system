@@ -2,6 +2,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import App from "./App"; // Import your App layout
 import Login from "./pages/Login";
+import ChangePassword from "./pages/ChangePassword";
 import HomeScreen from "./pages/HomeScreen";
 import Dashboard from "./pages/Dashbaord/Dashboard";
 import Employees from "./pages/Dashbaord/Employees/Employees";
@@ -53,6 +54,10 @@ export const router = createBrowserRouter([
       {
         path: "login",
         element: <Login />,
+      },
+      {
+        path: "change-password",
+        element: <ChangePassword />,
       },
     ],
   },

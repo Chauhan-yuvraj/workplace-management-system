@@ -4,7 +4,76 @@ import bcrypt from 'bcrypt'
 import { uploadImageToCloudinary } from "../utils/cloudinary";
 
 
-export const GetMe = async (req: Request, res: Response) => { }
+export const GetMe = async (req: Request, res: Response) => {
+    try {
+        const employee = await Employee.findById(req.user?._id);
+        if (!employee) {
+            return res.status(404).json({
+                success: false,
+                message: "Employee not found"
+            });
+        }
+        res.status(200).json({
+            success: true,
+            data: employee
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "An error occurred while retrieving profile.",
+            error
+        });
+    }
+}
+
+export const UpdateMe = async (req: Request, res: Response) => {
+    try {
+        const id = req.user?._id;
+        
+        // Allowed updates for self-service
+        const allowedUpdates = ['name', 'phone', 'profileImgUri', 'password'];
+        const updates: Record<string, any> = {};
+
+        Object.keys(req.body).forEach((key) => {
+            if (allowedUpdates.includes(key)) {
+                updates[key] = req.body[key];
+            }
+        });
+
+        if (req.file) {
+            try {
+                updates.profileImgUri = await uploadImageToCloudinary(req.file.buffer);
+            } catch (uploadError) {
+                return res.status(500).json({ message: "Failed to upload image" });
+            }
+        }
+
+        if (req.body.password) {
+            const salt = await bcrypt.genSalt(10);
+            updates.password = await bcrypt.hash(req.body.password, salt);
+            updates.requiresPasswordChange = false;
+        }
+
+        const updatedEmployee = await Employee.findByIdAndUpdate(
+            id,
+            updates,
+            { new: true, runValidators: true }
+        ).select('-password');
+
+        res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            data: updatedEmployee
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "An error occurred while updating profile.",
+            error
+        });
+    }
+}
 
 export const GetEmployee = async (req: Request, res: Response) => {
     try {
@@ -257,5 +326,37 @@ export const GetActiveHostList = async (req: Request, res: Response) => {
         data: hosts
     });
 }
+
+export const ToggleEmployeeStatus = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const employee = await Employee.findById(id);
+
+        if (!employee) {
+            return res.status(404).json({
+                success: false,
+                message: "Employee not found"
+            });
+        }
+
+        employee.isActive = !employee.isActive;
+        await employee.save();
+
+        res.status(200).json({
+            success: true,
+            message: `Employee ${employee.isActive ? 'activated' : 'deactivated'} successfully`,
+            data: {
+                id: employee._id,
+                isActive: employee.isActive
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "An error occurred while toggling employee status.",
+            error
+        });
+    }
+};
 
 export const BulkImportEmployees = async (req: Request, res: Response) => { }

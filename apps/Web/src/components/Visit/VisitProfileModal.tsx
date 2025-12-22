@@ -2,6 +2,17 @@ import Modal from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Calendar,  User, Building, FileText, Trash2, Edit, CheckCircle, XCircle } from "lucide-react";
 import type { Visit } from "@/types/visit";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface VisitProfileModalProps {
   isOpen: boolean;
@@ -19,13 +30,6 @@ export default function VisitProfileModal({
   onDelete,
 }: VisitProfileModalProps) {
   if (!visit) return null;
-
-  const handleDelete = () => {
-    if (window.confirm("Are you sure you want to delete this visit?")) {
-      onDelete(visit._id);
-      onClose();
-    }
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -140,14 +144,34 @@ export default function VisitProfileModal({
 
         {/* Actions */}
         <div className="flex w-full gap-3 pt-4 border-t">
-          <Button
-            variant="outline"
-            className="flex-1 gap-2 border-destructive text-destructive hover:bg-destructive/10"
-            onClick={handleDelete}
-          >
-            <Trash2 className="h-4 w-4" />
-            Delete
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="flex-1 gap-2 border-destructive text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the visit record.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => {
+                  onDelete(visit._id);
+                  onClose();
+                }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <Button className="flex-1 gap-2" onClick={() => onEdit(visit)}>
             <Edit className="h-4 w-4" />
             Edit Visit

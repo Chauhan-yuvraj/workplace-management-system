@@ -1,8 +1,19 @@
 import Modal from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
-import { User, Mail, Phone, Building, Shield, Trash2, Edit } from "lucide-react";
+import { User, Mail, Phone, Building, Shield, Trash2, Edit, Power } from "lucide-react";
 import type { Employee } from "@/types/user";
 import { PermissionGuard } from "../auth/PermissionGuard";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface EmployeeProfileModalProps {
   isOpen: boolean;
@@ -10,6 +21,7 @@ interface EmployeeProfileModalProps {
   employee: Employee | null;
   onEdit: (employee: Employee) => void;
   onDelete: (employeeId: string) => void;
+  onToggleStatus: (employeeId: string) => void;
 }
 
 export default function EmployeeProfileModal({
@@ -18,15 +30,9 @@ export default function EmployeeProfileModal({
   employee,
   onEdit,
   onDelete,
+  onToggleStatus,
 }: EmployeeProfileModalProps) {
   if (!employee) return null;
-
-  const handleDelete = () => {
-    if (window.confirm("Are you sure you want to delete this employee?")) {
-      onDelete(employee._id || "");
-      onClose();
-    }
-  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Employee Profile">
@@ -109,14 +115,64 @@ export default function EmployeeProfileModal({
         {/* Actions */}
         <PermissionGuard permission="manage_employees">
           <div className="flex w-full gap-3 pt-2">
-            <Button
-              variant="outline"
-              className="flex-1 gap-2 border-destructive text-destructive hover:bg-destructive/10"
-              onClick={handleDelete}
-            >
-              <Trash2 className="h-4 w-4" />
-              Delete
-            </Button>
+            {employee.isActive ? (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="flex-1 gap-2 border-destructive text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action will deactivate the employee account. They will no longer be able to log in.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => {
+                      onDelete(employee._id || "");
+                      onClose();
+                    }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            ) : (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="flex-1 gap-2 border-green-500 text-green-500 hover:bg-green-50"
+                  >
+                    <Power className="h-4 w-4" />
+                    Activate
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Activate Employee?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will reactivate the employee account. They will be able to log in again.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => {
+                      onToggleStatus(employee._id || "");
+                    }} className="bg-green-600 text-white hover:bg-green-700">
+                      Activate
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
             <Button className="flex-1 gap-2" onClick={() => onEdit(employee)}>
               <Edit className="h-4 w-4" />
               Edit Profile

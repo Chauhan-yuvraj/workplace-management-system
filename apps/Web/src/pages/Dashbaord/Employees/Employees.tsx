@@ -35,6 +35,7 @@ export default function Employees() {
     handleEmployeeClick,
     handleEditFromProfile,
     handleDeleteEmployee,
+    handleToggleStatus,
   } = useEmployees();
 
   return (
@@ -58,6 +59,7 @@ export default function Employees() {
         employee={selectedEmployee}
         onEdit={handleEditFromProfile}
         onDelete={handleDeleteEmployee}
+        onToggleStatus={handleToggleStatus}
       />
 
       <PageControls
@@ -74,7 +76,7 @@ export default function Employees() {
               setStatusFilter(value)
             }
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-45">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>

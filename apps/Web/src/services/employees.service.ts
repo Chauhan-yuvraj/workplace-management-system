@@ -50,3 +50,8 @@ export const deleteEmployee = async (id: string): Promise<void> => {
   await API.delete(`/employees/${id}`);
 };
 
+export const toggleEmployeeStatus = async (id: string): Promise<Employee> => {
+  const response = await API.patch<SingleEmployeeResponse>(`/employees/${id}/toggle-status`);
+  return response.data.data;
+};
+

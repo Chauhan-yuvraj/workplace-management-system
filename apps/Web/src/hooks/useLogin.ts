@@ -4,8 +4,8 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { loginUser } from "@/store/slices/authSlice";
 
 export const useLogin = () => {
-  const [email, setEmail] = useState("yuvraj.chauhan@abhyuday.in");
-  const [password, setPassword] = useState("abhyuday@123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();

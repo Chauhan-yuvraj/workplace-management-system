@@ -2,6 +2,17 @@ import Modal from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { User ,FileText, Trash2, MessageSquare, Image as ImageIcon } from "lucide-react";
 import type { Record, SerializablePathData } from "@/types/record";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface RecordDetailModalProps {
   isOpen: boolean;
@@ -39,13 +50,6 @@ export default function RecordDetailModal({
   onDelete,
 }: RecordDetailModalProps) {
   if (!record) return null;
-
-  const handleDelete = () => {
-    if (window.confirm("Are you sure you want to delete this record?")) {
-      onDelete(record._id);
-      onClose();
-    }
-  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Record Details">
@@ -122,14 +126,34 @@ export default function RecordDetailModal({
 
         {/* Actions */}
         <div className="flex w-full gap-3 pt-4 border-t">
-          <Button
-            variant="outline"
-            className="flex-1 gap-2 border-destructive text-destructive hover:bg-destructive/10"
-            onClick={handleDelete}
-          >
-            <Trash2 className="h-4 w-4" />
-            Delete Record
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="flex-1 gap-2 border-destructive text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete Record
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the record.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => {
+                  onDelete(record._id);
+                  onClose();
+                }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <Button className="flex-1" onClick={onClose}>
             Close
           </Button>
