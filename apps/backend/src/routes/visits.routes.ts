@@ -12,7 +12,7 @@ const router = Router();
 
 router
     .route("/")
-    .get(protect, checkPermission('manage_visits', 'view_self_visits'), GetVisits) 
+    .get(protect, checkPermission('manage_visits', 'view_self_visits'), GetVisits)
     .post(protect, checkPermission('manage_visits', 'view_self_visits'), ScheduleVisit); // Any employee can schedule a visit?
 
 router

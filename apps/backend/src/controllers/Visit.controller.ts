@@ -5,18 +5,31 @@ import { Employee } from "../models/employees.model";
 
 // --- Get All Visits ---
 export const GetVisits = async (req: Request, res: Response) => {
+    const user = req.user;
+
+    if (!user) {
+        return res.status(401).json({
+            success: false,
+            message: "Unauthorized"
+        });
+    }
+
     try {
         // Optional: Filter by status or host if query params are present
         const filter: any = {};
+
         if (req.query.status) {
             filter.status = req.query.status;
         }
         if (req.query.hostId) {
             filter['host.id'] = req.query.hostId;
         }
+        if (user.role === 'employee') {
+            filter['host.id'] = user.id;
+        }
+        const visits = await Visit.find(filter)
+            .sort({ scheduledCheckIn: 1, createdAt: -1 });
 
-        const visits = await Visit.find(filter).sort({ scheduledCheckIn: 1, createdAt: -1 });
-        
         res.status(200).json({
             success: true,
             count: visits.length,
@@ -41,7 +54,7 @@ export const GetVisit = async (req: Request, res: Response) => {
                 message: "Visit not found"
             });
         }
-        
+
         res.status(200).json({
             success: true,
             data: visit
@@ -58,10 +71,10 @@ export const GetVisit = async (req: Request, res: Response) => {
 // --- Schedule a Visit (Create) ---
 export const ScheduleVisit = async (req: Request, res: Response) => {
     try {
-        const { 
-            visitorId, 
-            hostId, 
-            scheduledCheckIn, 
+        const {
+            visitorId,
+            hostId,
+            scheduledCheckIn,
             isWalkIn,
             purpose
         } = req.body;
@@ -127,14 +140,9 @@ export const UpdateVisit = async (req: Request, res: Response) => {
         const { id } = req.params;
         const updates = req.body;
 
-        // Prevent updating snapshots directly via this endpoint if we want to keep integrity, 
-        // but for flexibility allow updating status, times, etc.
-        
-        // If status changes to CHECKED_IN, we might want to set actualCheckIn
         if (updates.status === 'CHECKED_IN' && !updates.actualCheckIn) {
             updates.actualCheckIn = new Date();
         }
-        // If status changes to CHECKED_OUT, set actualCheckOut
         if (updates.status === 'CHECKED_OUT' && !updates.actualCheckOut) {
             updates.actualCheckOut = new Date();
         }

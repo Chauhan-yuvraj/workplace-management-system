@@ -1,11 +1,11 @@
 import { createSlice, createAsyncThunk, } from '@reduxjs/toolkit';
 import { authService } from '../../services/auth.service';
-import type { Employee } from '@/types/user';
+import type { Employee, UserRole } from '@/types/user';
 import { jwtDecode } from "jwt-decode";
 
 interface DecodedToken {
     id: string;
-    role: string;
+    role: UserRole;
     permissions: string[];
     iat: number;
     exp: number;
@@ -15,7 +15,7 @@ interface AuthState {
     user: Employee | null;
     token: string | null;
     permissions: string[];
-    role: string | null;
+    role: UserRole| null;
     isAuthenticated: boolean;
     isLoading: boolean;
     error: string | null;
@@ -27,7 +27,7 @@ const loadState = (): Partial<AuthState> => {
         const token = localStorage.getItem('token');
         const user = localStorage.getItem('user');
         let permissions: string[] = [];
-        let role: string | null = null;
+        let role: UserRole | null = null;
 
         if (token) {
             const decoded = jwtDecode<DecodedToken>(token);

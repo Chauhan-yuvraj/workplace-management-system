@@ -31,7 +31,8 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 px-4 space-y-1">
-        {sidebarItems
+
+        {role && sidebarItems.filter((item) => item.roles.includes(role))
           .map((item) => (
             <NavLink
               key={item.href}

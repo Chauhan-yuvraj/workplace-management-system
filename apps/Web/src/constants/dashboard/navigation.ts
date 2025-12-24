@@ -7,12 +7,22 @@ import {
   Package,
   FileText,
 } from "lucide-react";
+import { UserRole } from "@/types/user";
+import type { LucideIcon } from "lucide-react";
 
-export const sidebarItems = [
-  { icon: LayoutGrid, label: "Dashboard", href: "/dashboard", roles: ['admin', 'hr', 'executive'] },
-  { icon: UserRoundPen, label: "Employees", href: "/dashboard/employees", roles: ['admin', 'hr', 'executive'] },
-  { icon: Users, label: "Visitors", href: "/dashboard/visitors", roles: ['admin', 'hr', 'executive'] },
-  { icon: Send, label: "Visits", href: "/dashboard/visits", roles: ['admin', 'hr', 'executive'] },
-  { icon: FileText, label: "Records", href: "/dashboard/records", roles: ['admin', 'hr', 'executive'] },
-  { icon: Package, label: "Deliveries", href: "/dashboard/deliveries", roles: ['admin', 'hr', 'executive'] },
+// Enforce a consistent, widened role type across all items
+type SidebarItem = {
+  icon: LucideIcon;
+  label: string;
+  href: string;
+  roles: UserRole[];
+};
+
+export const sidebarItems: SidebarItem[] = [
+  { icon: LayoutGrid, label: "Dashboard", href: "/dashboard", roles: [UserRole.ADMIN, UserRole.HR, UserRole.EXECUTIVE, UserRole.EMPLOYEE] },
+  { icon: UserRoundPen, label: "Employees", href: "/dashboard/employees", roles: [UserRole.ADMIN, UserRole.HR, UserRole.EXECUTIVE, UserRole.EMPLOYEE] },
+  { icon: Users, label: "Visitors", href: "/dashboard/visitors", roles: [UserRole.ADMIN, UserRole.HR, UserRole.EXECUTIVE] },
+  { icon: Send, label: "Visits", href: "/dashboard/visits", roles: [UserRole.ADMIN, UserRole.HR, UserRole.EXECUTIVE, UserRole.EMPLOYEE] },
+  { icon: FileText, label: "Records", href: "/dashboard/records", roles: [UserRole.ADMIN, UserRole.HR, UserRole.EXECUTIVE, UserRole.EMPLOYEE] },
+  { icon: Package, label: "Deliveries", href: "/dashboard/deliveries", roles: [UserRole.ADMIN, UserRole.HR, UserRole.EXECUTIVE, UserRole.EMPLOYEE] },
 ] as const;
