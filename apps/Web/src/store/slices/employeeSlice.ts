@@ -2,32 +2,51 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 
 import {
-  getEmployees,
+  fetchActiveEmployees as fetchActiveEmployeesService,
+  getEmployees as getEmployeesService,
   createEmployee as createEmployeeService,
   updateEmployee as updateEmployeeService,
   deleteEmployee as deleteEmployeeService,
   toggleEmployeeStatus as toggleEmployeeStatusService
 } from '../../services/employees.service';
 import type { Employee } from '@/types/user';
+import type { ActiveEmployeeOption } from '@repo/types';
+
+
 
 interface EmployeeState {
-  employees: Employee[];
+  employees: Employee[];           // Full list for Tables/Management
+  activeEmployees: ActiveEmployeeOption[]; // Simplified list for Dropdowns/Selects
   isLoading: boolean;
   error: string | null;
 }
 
 const initialState: EmployeeState = {
   employees: [],
+  activeEmployees: [],
   isLoading: false,
   error: null,
 };
 
 // Async Thunks
+export const fetchActiveEmployees = createAsyncThunk(
+  'employees/fetchActiveEmployees',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetchActiveEmployeesService();
+      // TypeScript needs to know this returns the simplified list
+      return response as ActiveEmployeeOption[]; 
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Failed to fetch active employees');
+    }
+  }
+);
+
 export const fetchEmployees = createAsyncThunk(
   'employees/fetchEmployees',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await getEmployees();
+      const response = await getEmployeesService();
       return response;
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to fetch employees');
@@ -35,6 +54,7 @@ export const fetchEmployees = createAsyncThunk(
   }
 );
 
+// ... (Your other thunks: addEmployee, updateEmployee, deleteEmployee remain unchanged) ...
 export const addEmployee = createAsyncThunk(
   'employees/addEmployee',
   async (employeeData: Partial<Employee> | FormData, { rejectWithValue }) => {
@@ -93,7 +113,23 @@ const employeeSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch Employees
+      // --- Handle Active Employees (Simplified List) ---
+      .addCase(fetchActiveEmployees.pending, (state) => {
+        // You might want a separate isLoading for this, or share the main one
+        state.isLoading = true; 
+        state.error = null;
+      })
+      .addCase(fetchActiveEmployees.fulfilled, (state, action: PayloadAction<ActiveEmployeeOption[]>) => {
+        state.isLoading = false;
+        // Update the NEW property, not the main employees list
+        state.activeEmployees = action.payload; 
+      })
+      .addCase(fetchActiveEmployees.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+
+      // --- Handle Full Employees List ---
       .addCase(fetchEmployees.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -106,6 +142,8 @@ const employeeSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
+
+      // ... (Rest of your reducers: Add, Update, Delete, Toggle remain unchanged)
       // Add Employee
       .addCase(addEmployee.pending, (state) => {
         state.isLoading = true;

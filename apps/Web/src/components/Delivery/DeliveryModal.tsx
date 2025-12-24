@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { addDelivery } from "@/store/slices/deliverySlice";
-import { fetchEmployees } from "@/store/slices/employeeSlice";
+import { fetchActiveEmployees } from "@/store/slices/employeeSlice";
+import { UserRole } from "@/types/user";
 import Modal from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import {
@@ -19,7 +20,8 @@ interface DeliveryModalProps {
 
 export default function DeliveryModal({ isOpen, onClose }: DeliveryModalProps) {
   const dispatch = useAppDispatch();
-  const { employees } = useAppSelector((state) => state.employees);
+  const { activeEmployees } = useAppSelector((state) => state.employees);
+  const { user, role } = useAppSelector((state) => state.auth);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     recipientId: "",
@@ -29,11 +31,21 @@ export default function DeliveryModal({ isOpen, onClose }: DeliveryModalProps) {
   });
 
   useEffect(() => {
-    if (isOpen && employees.length === 0) {
-      dispatch(fetchEmployees());
+    if (isOpen) {
+      if (role === UserRole.EMPLOYEE && user) {
+        setFormData((prev) => ({
+          ...prev,
+          recipientId: user._id || user.id || "",
+        }));
+      } else if (activeEmployees.length === 0) {
+        dispatch(fetchActiveEmployees());
+      }
     }
-  }, [isOpen, dispatch, employees.length]);
+  }, [isOpen, dispatch, activeEmployees.length, role, user]);
 
+  useEffect(() => {
+    console.log(activeEmployees);
+  }, [activeEmployees]);
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -65,23 +77,32 @@ export default function DeliveryModal({ isOpen, onClose }: DeliveryModalProps) {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">Recipient</label>
-          <Select
-            value={formData.recipientId}
-            onValueChange={(value) =>
-              setFormData((prev) => ({ ...prev, recipientId: value }))
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select Employee" />
-            </SelectTrigger>
-            <SelectContent>
-              {employees.map((emp) => (
-                <SelectItem key={emp._id} value={emp._id || ""}>
-                  {emp.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {role === UserRole.EMPLOYEE && user ? (
+            <input
+              type="text"
+              value={user.name}
+              disabled
+              className="w-full p-2 border rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
+            />
+          ) : (
+            <Select
+              value={formData.recipientId}
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, recipientId: value }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select Employee" />
+              </SelectTrigger>
+              <SelectContent>
+                {activeEmployees.map((emp) => (
+                  <SelectItem key={emp._id} value={emp._id || ""}>
+                    {emp.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         <div>

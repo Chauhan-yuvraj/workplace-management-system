@@ -28,6 +28,14 @@ export interface IEmployee {
   status?: "Active" | "On Leave" | "Inactive";
 }
 
+export interface ActiveEmployeeOption {
+  _id: string;
+  name: string;
+  profileImgUri?: string;
+  jobTitle?: string;
+
+}
+
 export type Employee = IEmployee;
 
 export type Guest = {

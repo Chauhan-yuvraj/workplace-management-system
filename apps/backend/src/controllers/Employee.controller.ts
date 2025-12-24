@@ -29,7 +29,7 @@ export const GetMe = async (req: Request, res: Response) => {
 export const UpdateMe = async (req: Request, res: Response) => {
     try {
         const id = req.user?._id;
-        
+
         // Allowed updates for self-service
         const allowedUpdates = ['name', 'phone', 'profileImgUri', 'password'];
         const updates: Record<string, any> = {};
@@ -320,7 +320,7 @@ export const UpdateEmployee = async (req: Request, res: Response) => {
 };
 
 export const GetActiveHostList = async (req: Request, res: Response) => {
-    const hosts = await Employee.find({ role: "HOST", isActive: true }).select('name profileImgUri _id jobTitle').sort('name');
+    const hosts = await Employee.find({ isActive: true }).select('name profileImgUri _id jobTitle').sort('name');
     res.status(200).json({
         success: true,
         data: hosts

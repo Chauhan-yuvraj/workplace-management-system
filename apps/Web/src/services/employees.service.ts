@@ -1,5 +1,6 @@
 import type { Employee } from "@/types/user";
 import API from "./api";
+import type { ActiveEmployeeOption } from "node_modules/@repo/types/src/user";
 
 interface EmployeeApiResponse {
   success: boolean;
@@ -7,10 +8,29 @@ interface EmployeeApiResponse {
   data: Employee[];
 }
 
+interface ActiveEmployeeApiResponse {
+  success: boolean;
+  data: ActiveEmployeeOption[];
+}
+
 interface SingleEmployeeResponse {
   success: boolean;
   data: Employee;
 }
+
+export const fetchActiveEmployees = async (): Promise<ActiveEmployeeOption[]> => {
+  try {
+    const response = await API.get<ActiveEmployeeApiResponse>("/employees/active-list");
+    if (response.data && Array.isArray(response.data.data)) {
+      console.log("response.data", response.data)
+      return response.data.data;
+    }
+    return [];
+  } catch (error) {
+    console.error("Failed to fetch active employees:", error);
+    throw error;
+  }
+};
 
 export const getEmployees = async (): Promise<Employee[]> => {
   try {
