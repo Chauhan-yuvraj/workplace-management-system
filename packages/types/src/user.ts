@@ -27,6 +27,8 @@ export interface IEmployee {
   // Frontend specific
   status?: "Active" | "On Leave" | "Inactive";
 }
+export type RoleFilter = UserRole | "all";
+
 
 export interface ActiveEmployeeOption {
   _id: string;
