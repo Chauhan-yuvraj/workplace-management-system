@@ -1,4 +1,4 @@
-import moongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const ProjectSchema = new Schema(
     {
@@ -16,7 +16,11 @@ const ProjectSchema = new Schema(
             ref: "Department",
             required: true,
         },
-        ProjectManagerId: {
+        projectManagerId: {
+            type: Schema.Types.ObjectId,
+            ref: "Employee",
+        },
+        teamLeadId: {
             type: Schema.Types.ObjectId,
             ref: "Employee",
         },
@@ -43,7 +47,7 @@ const ProjectSchema = new Schema(
             default: "PLANNING",
             index: true,
         },
-        statusHstory: [
+        statusHistory: [
             {
                 status: String,
                 remarks: String,
@@ -67,4 +71,4 @@ const ProjectSchema = new Schema(
     }
 );
 
-export const Project = moongoose.models.Project || moongoose.model("Project", ProjectSchema);
+export const Project = mongoose.models.Project || mongoose.model("Project", ProjectSchema);

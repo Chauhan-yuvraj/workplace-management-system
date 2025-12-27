@@ -55,7 +55,7 @@ export const EmployeeCard = ({ item, onEdit, onDelete }: EmployeeCardProps) => {
             </View>
           </View>
           <Text className="text-gray-500 text-sm mt-0.5">
-            {item.jobTitle} • {item.department}
+            {item.jobTitle} • {(item as any).departmentId?.departmentName || "No Department"}
           </Text>
           <View className="flex-row items-center mt-1">
             <Mail size={12} color="#9CA3AF" />

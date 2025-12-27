@@ -18,9 +18,11 @@ import {
 } from "lucide-react-native";
 import { Employee } from "@/store/types/user";
 import { FormInput } from "@/components/ui/FormInput";
+import { SelectionList } from "@/components/ui/SelectionList";
 import { ImageUpload } from "./ImageUpload";
 import { EmployeeFormHeader } from "./EmployeeFormHeader";
 import { useEmployeeForm } from "@/hooks/Dashboard/employees/useEmployeeForm";
+import type { IDepartment } from "@repo/types";
 
 interface EmployeeFormProps {
   visible: boolean;
@@ -40,12 +42,46 @@ export default function EmployeeForm({
   const {
     formData,
     setFormData,
+    departments,
     imageUri,
     showImagePickerOptions,
     handleSubmit,
   } = useEmployeeForm({ initialData, onSubmit, visible });
 
+  const [showDepartmentList, setShowDepartmentList] = React.useState(false);
+
+  const selectedDepartment = React.useMemo(
+    () => departments.find(d => d._id === formData.departmentId),
+    [departments, formData.departmentId]
+  );
+
   if (!visible) return null;
+
+  // ✅ EARLY RETURN FOR DEPARTMENT SELECTION
+  if (showDepartmentList) {
+    return (
+      <SelectionList
+        data={departments}
+        title="Select Department"
+        searchKeys={["departmentName", "departmentCode"]}
+        onSelect={(dept: IDepartment) => {
+          setFormData({ ...formData, departmentId: dept._id || "" });
+          setShowDepartmentList(false);
+        }}
+        onClose={() => setShowDepartmentList(false)}
+        renderItem={(dept: IDepartment) => (
+          <View className="py-3">
+            <Text className="text-base font-medium text-gray-900">
+              {dept.departmentName}
+            </Text>
+            <Text className="text-sm text-gray-500">
+              {dept.departmentCode}
+            </Text>
+          </View>
+        )}
+      />
+    );
+  }
 
   return (
     <View className="absolute inset-0 z-50 bg-black/50 flex-1 justify-end">
@@ -79,6 +115,7 @@ export default function EmployeeForm({
               onChangeText={(t) => setFormData({ ...formData, name: t })}
               icon={User}
             />
+
             <FormInput
               label="Email Address *"
               placeholder="e.g. rahul@company.com"
@@ -87,6 +124,7 @@ export default function EmployeeForm({
               icon={Mail}
               keyboardType="email-address"
             />
+
             <FormInput
               label="Phone Number"
               placeholder="e.g. +91 98765 43210"
@@ -104,17 +142,26 @@ export default function EmployeeForm({
               label="Job Title *"
               placeholder="e.g. Software Engineer"
               value={formData.jobTitle}
-              onChangeText={(t) => setFormData({ ...formData, jobTitle: t })}
+              onChangeText={(t) =>
+                setFormData({ ...formData, jobTitle: t })
+              }
               icon={Briefcase}
             />
 
-            <FormInput
-              label="Department"
-              placeholder="e.g. Engineering"
-              value={formData.department}
-              onChangeText={(t) => setFormData({ ...formData, department: t })}
-              icon={Building}
-            />
+            <TouchableOpacity
+              onPress={() => setShowDepartmentList(true)}
+              className="mb-4"
+            >
+              <Text className="text-sm font-medium text-gray-700 mb-2">
+                Department
+              </Text>
+              <View className="flex-row items-center justify-between bg-gray-50 border border-gray-300 rounded-lg px-4 py-3">
+                <Text className="text-base text-gray-900">
+                  {selectedDepartment?.departmentName || "Select Department"}
+                </Text>
+                <Building size={20} color="#6B7280" />
+              </View>
+            </TouchableOpacity>
 
             <View className="mb-4">
               <Text className="text-sm font-medium text-gray-700 mb-2">
@@ -124,7 +171,9 @@ export default function EmployeeForm({
                 {["employee", "hr", "admin", "executive"].map((role) => (
                   <TouchableOpacity
                     key={role}
-                    onPress={() => setFormData({ ...formData, role: role })}
+                    onPress={() =>
+                      setFormData({ ...formData, role })
+                    }
                     className={`px-4 py-2 rounded-full border ${
                       formData.role === role
                         ? "bg-black border-black"
@@ -133,7 +182,9 @@ export default function EmployeeForm({
                   >
                     <Text
                       className={`capitalize text-sm font-medium ${
-                        formData.role === role ? "text-white" : "text-gray-600"
+                        formData.role === role
+                          ? "text-white"
+                          : "text-gray-600"
                       }`}
                     >
                       {role}
@@ -154,11 +205,11 @@ export default function EmployeeForm({
               </View>
               <Switch
                 trackColor={{ false: "#D1D5DB", true: "#10B981" }}
-                thumbColor={"#FFFFFF"}
+                thumbColor="#FFFFFF"
+                value={formData.isActive}
                 onValueChange={(val) =>
                   setFormData({ ...formData, isActive: val })
                 }
-                value={formData.isActive}
               />
             </View>
 
@@ -180,8 +231,8 @@ export default function EmployeeForm({
                 isSubmitting ? "bg-gray-400" : "bg-black"
               }`}
             >
-              <Save size={18} color="white" className="mr-2" />
-              <Text className="font-bold text-white">
+              <Save size={18} color="white" />
+              <Text className="ml-2 font-bold text-white">
                 {isSubmitting ? "Saving..." : "Save Details"}
               </Text>
             </TouchableOpacity>

@@ -90,7 +90,7 @@ export const ScheduleVisit = async (req: Request, res: Response) => {
         }
 
         // 2. Fetch Host Details for Snapshot
-        const host = await Employee.findById(hostId);
+        const host = await Employee.findById(hostId).populate('departmentId', 'departmentName');
         if (!host) {
             return res.status(404).json({ message: "Host (Employee) not found." });
         }
@@ -108,7 +108,7 @@ export const ScheduleVisit = async (req: Request, res: Response) => {
             host: {
                 id: host._id,
                 name: host.name,
-                department: host.department,
+                department: (host as any).departmentId?.departmentName || null,
                 profileImgUri: host.profileImgUri
             },
             status: "PENDING",

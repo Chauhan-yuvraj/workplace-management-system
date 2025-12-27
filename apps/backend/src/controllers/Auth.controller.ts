@@ -16,7 +16,7 @@ export const Login = async (req: Request, res: Response): Promise<void> => {
     }
 
     // --- FIX 1: Add .select("+password") ---
-    const user = await Employee.findOne({ email: email.toLowerCase().trim() }).select("+password");
+    const user = await Employee.findOne({ email: email.toLowerCase().trim() }).select("+password").populate('departmentId', 'departmentName');
 
     if (!user) {
       res.status(401).json({ success: false, message: "Invalid credentials" });
@@ -43,7 +43,7 @@ export const Login = async (req: Request, res: Response): Promise<void> => {
       name: user.name,
       email: user.email,
       role: user.role,
-      department: user.department,
+      department: (user as any).departmentId?.departmentName || null,
       jobTitle: user.jobTitle,
       profileImgUri: user.profileImgUri,
       isActive: user.isActive,

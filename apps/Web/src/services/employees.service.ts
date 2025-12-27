@@ -1,6 +1,6 @@
 import type { Employee } from "@/types/user";
 import API from "./api";
-import type { ActiveEmployeeOption } from "node_modules/@repo/types/src/user";
+import type { ActiveEmployeeOption } from "@repo/types";
 
 interface EmployeeApiResponse {
   success: boolean;

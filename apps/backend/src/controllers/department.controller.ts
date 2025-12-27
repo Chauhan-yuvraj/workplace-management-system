@@ -3,10 +3,10 @@ import { Department } from "../models/department.model";
 
 export const createDepartment = async (req: Request, res: Response) => {
     try {
-        const { departmentName, departmentCode } = req.body;
-        
-        const existingDepartment = await Department.findOne({ 
-            $or: [{ departmentName }, { departmentCode }] 
+        const { departmentName, departmentCode, departmentDescription, departmentHod, isActive } = req.body;
+
+        const existingDepartment = await Department.findOne({
+            $or: [{ departmentName }, { departmentCode }]
         });
 
         if (existingDepartment) {
@@ -18,7 +18,10 @@ export const createDepartment = async (req: Request, res: Response) => {
 
         const newDepartment = await Department.create({
             departmentName,
-            departmentCode
+            departmentCode,
+            departmentDescription,
+            departmentHod,
+            isActive: typeof isActive === 'boolean' ? isActive : true,
         });
 
         res.status(201).json({
@@ -54,11 +57,20 @@ export const getAllDepartments = async (req: Request, res: Response) => {
 export const updateDepartment = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { departmentName, departmentCode } = req.body;
+        const { departmentName, departmentCode, departmentDescription, departmentHod, isActive } = req.body;
+
+        // check for conflicts with other departments
+        const conflict = await Department.findOne({
+            $or: [{ departmentName }, { departmentCode }],
+            _id: { $ne: id }
+        });
+        if (conflict) {
+            return res.status(400).json({ success: false, message: 'Another department with same name or code exists' });
+        }
 
         const updatedDepartment = await Department.findByIdAndUpdate(
             id,
-            { departmentName, departmentCode },
+            { departmentName, departmentCode, departmentDescription, departmentHod, isActive },
             { new: true, runValidators: true }
         );
 

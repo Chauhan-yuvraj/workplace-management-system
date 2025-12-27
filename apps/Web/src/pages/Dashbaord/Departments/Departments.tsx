@@ -4,8 +4,11 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import Modal from "@/components/ui/Modal";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { usePermission } from "@/hooks/auth/usePermission";
 import { getDepartments, createDepartment, updateDepartment, deleteDepartment } from "@/services/department.service";
+import { fetchActiveEmployees } from "@/services/employees.service";
+import type { ActiveEmployeeOption } from "@repo/types";
 import { Trash2, Edit2 } from "lucide-react";
 import type { IDepartment } from "@repo/types";
 
@@ -15,7 +18,8 @@ export default function Departments() {
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<IDepartment | null>(null);
-  const [formData, setFormData] = useState({ departmentName: "", departmentCode: "" });
+  const [formData, setFormData] = useState({ departmentName: "", departmentCode: "", departmentDescription: "", departmentHod: "", isActive: true });
+  const [hodOptions, setHodOptions] = useState<ActiveEmployeeOption[]>([]);
 
   const fetchDepartments = async () => {
     setIsLoading(true);
@@ -36,10 +40,18 @@ export default function Departments() {
   const handleOpenModal = (department?: IDepartment) => {
     if (department) {
       setEditingDepartment(department);
-      setFormData({ departmentName: department.departmentName, departmentCode: department.departmentCode });
+      const hod = department.departmentHod;
+      const hodId = typeof hod === "string" ? hod : hod && typeof hod === "object" ? hod._id : "";
+      setFormData({
+        departmentName: department.departmentName,
+        departmentCode: department.departmentCode,
+        departmentDescription: department.departmentDescription || "",
+        departmentHod: hodId,
+        isActive: department.isActive ?? true,
+      });
     } else {
       setEditingDepartment(null);
-      setFormData({ departmentName: "", departmentCode: "" });
+      setFormData({ departmentName: "", departmentCode: "", departmentDescription: "", departmentHod: "", isActive: true });
     }
     setIsModalOpen(true);
   };
@@ -47,12 +59,18 @@ export default function Departments() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingDepartment(null);
-    setFormData({ departmentName: "", departmentCode: "" });
+    setFormData({ departmentName: "", departmentCode: "", departmentDescription: "", departmentHod: "", isActive: true });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // departmentHod is required by backend model
+      if (!formData.departmentHod) {
+        alert('Please select Head of Department');
+        return;
+      }
+
       if (editingDepartment && editingDepartment._id) {
         await updateDepartment(editingDepartment._id, formData);
       } else {
@@ -64,6 +82,18 @@ export default function Departments() {
       console.error("Error saving department", error);
     }
   };
+
+  useEffect(() => {
+    const loadHods = async () => {
+      try {
+        const res = await fetchActiveEmployees();
+        setHodOptions(res);
+      } catch (err) {
+        console.error("Failed to load HOD options", err);
+      }
+    };
+    loadHods();
+  }, []);
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this department?")) {
@@ -145,6 +175,29 @@ export default function Departments() {
               onChange={(e) => setFormData({ ...formData, departmentCode: e.target.value })}
               required
             />
+          </div>
+          <div>
+            <Label htmlFor="departmentDescription">Description</Label>
+            <Input id="departmentDescription" value={formData.departmentDescription} onChange={(e) => setFormData({ ...formData, departmentDescription: e.target.value })} />
+          </div>
+
+          <div>
+            <Label htmlFor="departmentHod">Head of Department</Label>
+            <Select value={formData.departmentHod} onValueChange={(v) => setFormData({ ...formData, departmentHod: v })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select HOD" />
+              </SelectTrigger>
+              <SelectContent>
+                {hodOptions.map((h) => (
+                  <SelectItem key={h._id} value={h._id}>{h.name}{h.jobTitle ? ` — ${h.jobTitle}` : ''}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="isActive">Active</Label>
+            <input type="checkbox" id="isActive" checked={formData.isActive} onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })} />
           </div>
           <div className="flex justify-end space-x-2 mt-4">
             <Button type="button" variant="outline" onClick={handleCloseModal}>Cancel</Button>

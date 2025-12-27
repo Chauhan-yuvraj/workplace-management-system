@@ -7,6 +7,7 @@ import authRoutes from "./routes/Auth.routes"
 import visitRoutes from "./routes/visits.routes"
 import deliveryRoutes from "./routes/Delivery.routes"
 import departmentRoutes from "./routes/department.routes"
+import projectRoutes from "./routes/project.routes"
 import cookieParser from "cookie-parser";
 
 
@@ -50,6 +51,7 @@ app.use("/api/records", recordsRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/deliveries', deliveryRoutes);
 app.use('/api/departments', departmentRoutes);
+app.use('/api/projects', projectRoutes);
 
 
 export default app;

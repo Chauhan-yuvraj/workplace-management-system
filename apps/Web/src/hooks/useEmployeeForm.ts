@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useAppDispatch } from "@/store/hooks";
 import { addEmployee, updateEmployee } from "@/store/slices/employeeSlice";
 import { UserRole, type Employee } from "@/types/user";
+import { getDepartments } from "@/services/department.service";
+import type { IDepartment } from "@repo/types";
 
 interface UseEmployeeFormProps {
   employeeToEdit?: Employee | null;
@@ -14,15 +16,29 @@ export const useEmployeeForm = ({ employeeToEdit, isOpen, onClose }: UseEmployee
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [createdPassword, setCreatedPassword] = useState<string | null>(null);
+  const [departments, setDepartments] = useState<IDepartment[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
-    department: "",
+    departmentId: "",
     jobTitle: "",
     role: UserRole.EMPLOYEE as string,
     status: "Active",
   });
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const deps = await getDepartments();
+        setDepartments(deps);
+      } catch (error) {
+        console.error("Failed to fetch departments:", error);
+      }
+    };
+
+    fetchDepartments();
+  }, []);
 
   useEffect(() => {
     if (employeeToEdit) {
@@ -30,7 +46,7 @@ export const useEmployeeForm = ({ employeeToEdit, isOpen, onClose }: UseEmployee
         name: employeeToEdit.name || "",
         email: employeeToEdit.email || "",
         phone: employeeToEdit.phone || "",
-        department: employeeToEdit.department || "",
+        departmentId: typeof employeeToEdit.departmentId === 'object' ? employeeToEdit.departmentId?._id || "" : employeeToEdit.departmentId || "",
         jobTitle: employeeToEdit.jobTitle || "",
         role: employeeToEdit.role || UserRole.EMPLOYEE,
         status: employeeToEdit.isActive ? "Active" : "Inactive",
@@ -40,7 +56,7 @@ export const useEmployeeForm = ({ employeeToEdit, isOpen, onClose }: UseEmployee
         name: "",
         email: "",
         phone: "",
-        department: "",
+        departmentId: "",
         jobTitle: "",
         role: UserRole.EMPLOYEE,
         status: "Active",
@@ -60,7 +76,9 @@ export const useEmployeeForm = ({ employeeToEdit, isOpen, onClose }: UseEmployee
   const handleRoleChange = (value: string) => {
     setFormData((prev) => ({ ...prev, role: value as UserRole }));
   };
-
+  const handleDepartmentChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, departmentId: value }));
+  };
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
@@ -75,7 +93,7 @@ export const useEmployeeForm = ({ employeeToEdit, isOpen, onClose }: UseEmployee
       submitData.append("name", formData.name);
       submitData.append("email", formData.email);
       submitData.append("phone", formData.phone);
-      submitData.append("department", formData.department);
+      submitData.append("departmentId", formData.departmentId);
       submitData.append("jobTitle", formData.jobTitle);
       submitData.append("role", formData.role);
       submitData.append("isActive", String(formData.status === "Active"));
@@ -108,8 +126,10 @@ export const useEmployeeForm = ({ employeeToEdit, isOpen, onClose }: UseEmployee
     formData,
     isLoading,
     createdPassword,
+    departments,
     handleChange,
     handleRoleChange,
+    handleDepartmentChange,
     handleFileChange,
     handleSubmit,
   };

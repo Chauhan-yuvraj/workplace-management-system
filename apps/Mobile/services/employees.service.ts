@@ -11,7 +11,7 @@ interface EmployeeApiResponse {
 
 export const getEmployees = async (): Promise<Employee[]> => {
     try {
-        const response = await API.get<EmployeeApiResponse>('/employees');
+        const response = await API.get<EmployeeApiResponse>('/employees?populate=departmentId');
 
         console.log("API Raw Response:", response.data);
         if (response.data && Array.isArray(response.data.data)) {

@@ -2,6 +2,9 @@ export enum UserRole {
   EMPLOYEE = 'employee',
   HR = 'hr',
   ADMIN = 'admin',
+  PROJECT_MANAGER = 'project_manager',
+  TEAM_LEAD = "team_lead",
+  HOD = 'hod',
   EXECUTIVE = 'executive'
 }
 
@@ -11,7 +14,7 @@ export interface IEmployee {
   name: string;
   email: string;
   phone?: string;
-  department?: string;
+  departmentId?: string | { _id: string; departmentName: string };
   jobTitle?: string;
   role: UserRole;
   isActive: boolean;

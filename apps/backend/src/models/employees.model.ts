@@ -23,7 +23,7 @@ const EmployeeSchema = new Schema<IEmployee, EmployeeModel, IEmployeeMethods>(
 
     phone: { type: String, trim: true },
     profileImgUri: { type: String },
-    department: { type: String, trim: true },
+    departmentId: { type: Schema.Types.ObjectId, ref: "Department" },
     jobTitle: { type: String, trim: true },
 
     role: {

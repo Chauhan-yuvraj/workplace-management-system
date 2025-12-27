@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Alert } from "react-native";
 import { Employee, UserRole } from "@/store/types/user";
 import { useImagePicker } from "@/hooks/useImagePicker";
+import { getDepartments } from "@/services/department.service";
+import type { IDepartment } from "@repo/types";
 
 interface UseEmployeeFormProps {
   initialData?: Employee | null;
@@ -19,12 +21,13 @@ export const useEmployeeForm = ({
     email: "",
     phone: "",
     jobTitle: "",
-    department: "",
+    departmentId: "",
     role: "employee" as UserRole | string,
     isActive: true,
     profileImgUri: "",
   });
 
+  const [departments, setDepartments] = useState<IDepartment[]>([]);
   const [imageUri, setImageUri] = useState<string | null>(null);
 
   const { handleTakePhoto, handleChooseFromGallery } = useImagePicker((uri) => {
@@ -40,13 +43,26 @@ export const useEmployeeForm = ({
   };
 
   useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const deps = await getDepartments();
+        setDepartments(deps);
+      } catch (error) {
+        console.error("Failed to fetch departments:", error);
+      }
+    };
+
+    fetchDepartments();
+  }, []);
+
+  useEffect(() => {
     if (initialData) {
       setFormData({
         name: initialData.name || "",
         email: initialData.email || "",
         phone: initialData.phone || "",
         jobTitle: initialData.jobTitle || "",
-        department: initialData.department || "",
+        departmentId: typeof initialData.departmentId === 'object' ? initialData.departmentId?._id || "" : initialData.departmentId || "",
         role: initialData.role || "employee",
         isActive: initialData.isActive ?? true,
         profileImgUri: initialData.profileImgUri || "",
@@ -58,7 +74,7 @@ export const useEmployeeForm = ({
         email: "",
         phone: "",
         jobTitle: "",
-        department: "",
+        departmentId: "",
         role: "employee",
         isActive: true,
         profileImgUri: "",
@@ -104,6 +120,7 @@ export const useEmployeeForm = ({
   return {
     formData,
     setFormData,
+    departments,
     imageUri,
     showImagePickerOptions,
     handleSubmit,

@@ -97,7 +97,7 @@ export default function EmployeeProfileModal({
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Department</p>
-              <p className="text-sm font-medium">{employee.department || "N/A"}</p>
+              <p className="text-sm font-medium">{(employee as any).departmentId?.departmentName || "N/A"}</p>
             </div>
           </div>
 

@@ -163,7 +163,7 @@ export default function VisitModal({
                 <SelectContent>
                   {employees.map((employee) => (
                     <SelectItem key={employee._id} value={employee._id || ""}>
-                      {employee.name} - {employee.department}
+                      {employee.name} - {(employee as any).departmentId?.departmentName || "No Department"}
                     </SelectItem>
                   ))}
                 </SelectContent>

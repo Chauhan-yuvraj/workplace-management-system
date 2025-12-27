@@ -171,7 +171,7 @@ export default function VisitForm({ initialData, onSubmit, onCancel, isUpdating 
                         </View>
                         <View>
                             <Text className="font-medium text-gray-900">{employee.name}</Text>
-                            <Text className="text-xs text-gray-500">{employee.jobTitle} - {employee.department}</Text>
+                            <Text className="text-xs text-gray-500">{employee.jobTitle} - {(employee as any).departmentId?.departmentName || "No Department"}</Text>
                         </View>
                     </>
                 )}

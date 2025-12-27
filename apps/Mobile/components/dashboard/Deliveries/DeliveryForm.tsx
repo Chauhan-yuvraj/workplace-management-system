@@ -64,11 +64,11 @@ export default function DeliveryForm({ visible, onClose, onSubmit }: DeliveryFor
                     }}
                     onClose={() => setSelectingRecipient(false)}
                     title="Select Recipient"
-                    searchKeys={['name', 'email', 'department']}
+                    searchKeys={['name', 'email', 'departmentId']}
                     renderItem={(employee) => (
                         <View>
                             <Text className="font-medium text-gray-900">{employee.name}</Text>
-                            <Text className="text-xs text-gray-500">{employee.department}</Text>
+                            <Text className="text-xs text-gray-500">{(employee as any).departmentId?.departmentName || "No Department"}</Text>
                         </View>
                     )}
                 />

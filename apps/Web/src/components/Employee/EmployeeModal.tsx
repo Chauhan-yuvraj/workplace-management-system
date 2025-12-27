@@ -28,8 +28,10 @@ export default function EmployeeModal({
     formData,
     isLoading,
     createdPassword,
+    departments,
     handleChange,
     handleRoleChange,
+    handleDepartmentChange,
     handleFileChange,
     handleSubmit,
   } = useEmployeeForm({ employeeToEdit, isOpen, onClose });
@@ -112,13 +114,21 @@ export default function EmployeeModal({
           </div>
           <div className="space-y-2">
             <Label htmlFor="department">Department</Label>
-            <Input
-              id="department"
-              name="department"
-              value={formData.department}
-              onChange={handleChange}
-              placeholder="Engineering"
-            />
+            <Select
+              value={formData.departmentId}
+              onValueChange={handleDepartmentChange}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select Department" />
+              </SelectTrigger>
+              <SelectContent>
+                {departments.map((dept) => (
+                  <SelectItem key={dept._id} value={dept._id || ""}>
+                    {dept.departmentName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="jobTitle">Job Title</Label>
