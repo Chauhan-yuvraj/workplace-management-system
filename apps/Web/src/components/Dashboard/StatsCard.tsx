@@ -21,9 +21,9 @@ export function StatsCard({
   alert,
 }: StatsCardProps) {
   return (
-    <div className="bg-card rounded-xl border shadow-sm p-6">
+    <div className="bg-card rounded-xl border shadow-sm p-4 sm:p-6">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-muted-foreground">{title}</p>
+        <p className="text-xs sm:text-sm font-medium text-muted-foreground">{title}</p>
         <Icon
           className={`h-4 w-4 ${
             alert ? "text-red-500" : "text-muted-foreground"
@@ -31,7 +31,7 @@ export function StatsCard({
         />
       </div>
       <div className="mt-2 flex items-baseline gap-2">
-        <span className="text-2xl font-bold">{value}</span>
+        <span className="text-xl sm:text-2xl font-bold">{value}</span>
         {trend && (
           <span
             className={`text-xs font-medium flex items-center ${

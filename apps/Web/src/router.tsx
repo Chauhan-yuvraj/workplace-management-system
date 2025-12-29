@@ -11,7 +11,7 @@ import Visits from "./pages/Dashbaord/Visits/Visits";
 import Records from "./pages/Dashbaord/Records/Records";
 import Deliveries from "./pages/Dashbaord/Deliveries/Deliveries";
 import Departments from "./pages/Dashbaord/Departments/Departments";
-import Projects from "./pages/Dashbaord/Projects/Projects";
+// import Projects from "./pages/Dashbaord/Projects/Projects";
 import DashboardLayout from "./components/layout/DashboardLayout";
 
 export const router = createBrowserRouter([
@@ -55,10 +55,10 @@ export const router = createBrowserRouter([
             path: "departments",
             element: <Departments />,
           },
-          {
-            path: "projects",
-            element: <Projects />,
-          },
+          // {
+          //   path: "projects",
+          //   element: <Projects />,
+          // },
         ],
       },
       {
