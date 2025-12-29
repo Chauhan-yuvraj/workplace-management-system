@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Clock, CheckCircle, XCircle, Edit3, Save, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./Button";
+import Modal from "./Modal";
+import { Input } from "./Input";
 
 export interface TimeSlot {
   time: string;
@@ -32,6 +34,10 @@ export const TimeSlots: React.FC<TimeSlotsProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [slots, setSlots] = useState<TimeSlot[]>([]);
+  const [selectedSlotsForEdit, setSelectedSlotsForEdit] = useState<Set<number>>(new Set());
+  const [reasonModalOpen, setReasonModalOpen] = useState(false);
+  const [currentReason, setCurrentReason] = useState("");
+  const [pendingSlotIndices, setPendingSlotIndices] = useState<number[]>([]);
 
   // Check if slots can be edited (not past dates)
   const canEditSlots = (): boolean => {
@@ -179,34 +185,73 @@ export const TimeSlots: React.FC<TimeSlotsProps> = ({
       if (!canEditSlot(slot)) return;
       
       // Only allow editing available and unavailable slots, not booked ones
-      const newSlots = [...slots];
-      if (newSlots[index].available) {
-        // Available -> Unavailable
-        newSlots[index] = {
-          ...newSlots[index],
-          available: false,
-          booked: false,
-        };
-      } else if (!newSlots[index].available && !newSlots[index].booked) {
-        // Unavailable -> Available
-        newSlots[index] = {
-          ...newSlots[index],
-          available: true,
-          booked: false,
-        };
+      if (slot.booked) return;
+
+      const newSelectedSlots = new Set(selectedSlotsForEdit);
+      
+      if (newSelectedSlots.has(index)) {
+        // Deselect
+        newSelectedSlots.delete(index);
+      } else {
+        // Select
+        newSelectedSlots.add(index);
       }
-      // If booked, do nothing
-      setSlots(newSlots);
-      onSlotsData?.(newSlots);
+      
+      setSelectedSlotsForEdit(newSelectedSlots);
     } else {
       // Allow selecting any slot to view details
       onSlotSelect?.(slot.time);
     }
   };
 
+  const handleMarkAvailable = () => {
+    const newSlots = [...slots];
+    selectedSlotsForEdit.forEach(index => {
+      newSlots[index] = {
+        ...newSlots[index],
+        available: true,
+        booked: false,
+        reason: undefined,
+      };
+    });
+    setSlots(newSlots);
+    setSelectedSlotsForEdit(new Set());
+    onSlotsData?.(newSlots);
+  };
+
+  const handleMarkUnavailable = () => {
+    setPendingSlotIndices(Array.from(selectedSlotsForEdit));
+    setCurrentReason("");
+    setReasonModalOpen(true);
+  };
+
+  const handleConfirmUnavailable = () => {
+    const newSlots = [...slots];
+    pendingSlotIndices.forEach(index => {
+      newSlots[index] = {
+        ...newSlots[index],
+        available: false,
+        booked: false,
+        reason: currentReason.trim() || "Unavailable",
+      };
+    });
+    setSlots(newSlots);
+    setSelectedSlotsForEdit(new Set());
+    setReasonModalOpen(false);
+    setPendingSlotIndices([]);
+    onSlotsData?.(newSlots);
+  };
+
+  const handleCancelReason = () => {
+    setReasonModalOpen(false);
+    setPendingSlotIndices([]);
+    setCurrentReason("");
+  };
+
   const handleSaveChanges = () => {
     onSlotsUpdate?.(slots);
     setIsEditing(false);
+    setSelectedSlotsForEdit(new Set());
   };
 
   const handleCancelEdit = () => {
@@ -214,6 +259,7 @@ export const TimeSlots: React.FC<TimeSlotsProps> = ({
     setSlots(resetSlots);
     onSlotsData?.(resetSlots);
     setIsEditing(false);
+    setSelectedSlotsForEdit(new Set());
   };
 
   const getSlotDisplay = (slot: TimeSlot) => {
@@ -277,6 +323,28 @@ export const TimeSlots: React.FC<TimeSlotsProps> = ({
               </Button>
             ) : (
               <div className="flex gap-2">
+                {selectedSlotsForEdit.size > 0 && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleMarkAvailable}
+                      className="flex items-center gap-2"
+                    >
+                      <CheckCircle className="h-4 w-4" />
+                      Mark Available ({selectedSlotsForEdit.size})
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleMarkUnavailable}
+                      className="flex items-center gap-2"
+                    >
+                      <XCircle className="h-4 w-4" />
+                      Mark Unavailable ({selectedSlotsForEdit.size})
+                    </Button>
+                  </>
+                )}
                 <Button
                   variant="outline"
                   size="sm"
@@ -312,7 +380,12 @@ export const TimeSlots: React.FC<TimeSlotsProps> = ({
           {isEditing && (
             <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
               <p className="text-sm text-blue-800 dark:text-blue-200">
-                <strong>Edit Mode:</strong> Click on slots to toggle between Available and Unavailable. Booked slots and past time slots cannot be modified.
+                <strong>Edit Mode:</strong> Select multiple slots to mark as Available or Unavailable. Booked slots and past time slots cannot be modified.
+                {selectedSlotsForEdit.size > 0 && (
+                  <span className="block mt-1">
+                    <strong>{selectedSlotsForEdit.size} slot{selectedSlotsForEdit.size !== 1 ? 's' : ''} selected</strong>
+                  </span>
+                )}
               </p>
             </div>
           )}
@@ -332,6 +405,8 @@ export const TimeSlots: React.FC<TimeSlotsProps> = ({
                     isEditing
                       ? slot.booked || !canEditSlot(slot)
                         ? "cursor-not-allowed opacity-60"
+                        : selectedSlotsForEdit.has(index)
+                        ? "cursor-pointer ring-2 ring-primary bg-primary/10 border-primary"
                         : "hover:scale-105 active:scale-95 cursor-pointer"
                       : "hover:scale-105 active:scale-95 cursor-pointer",
                     display.bgColor,
@@ -381,6 +456,33 @@ export const TimeSlots: React.FC<TimeSlotsProps> = ({
           </div>
         </div>
       )}
+
+      {/* Reason Modal */}
+      <Modal
+        isOpen={reasonModalOpen}
+        onClose={handleCancelReason}
+        title="Reason for Unavailability"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Please provide a reason for marking {pendingSlotIndices.length} slot{pendingSlotIndices.length !== 1 ? 's' : ''} as unavailable:
+          </p>
+          <Input
+            value={currentReason}
+            onChange={(e) => setCurrentReason(e.target.value)}
+            placeholder="Enter reason (optional)"
+            className="w-full"
+          />
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={handleCancelReason}>
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmUnavailable}>
+              Confirm
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

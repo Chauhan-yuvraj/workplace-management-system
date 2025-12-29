@@ -8,20 +8,27 @@ import { useDashboardData } from "@/hooks/Dashboard/useDashboardData";
 import { Calendar } from "@/components/ui/calendar";
 import { TimeSlots, type TimeSlot } from "@/components/ui/TimeSlots";
 import React from "react";
+import { useSelector } from "react-redux";
+import { availabilityService } from "@/services/availability.service";
+import type { RootState } from "@/store/store";
 
-const SlotStatusCard: React.FC<{ selectedSlot?: TimeSlot }> = ({ selectedSlot }) => {
+const SlotStatusCard: React.FC<{ selectedSlot?: TimeSlot }> = ({
+  selectedSlot,
+}) => {
   return (
     <div className="bg-card rounded-xl border shadow-sm p-4 sm:p-6 w-full min-h-50">
       <h3 className="font-semibold text-base sm:text-lg mb-4">Slot Status</h3>
-      
+
       {!selectedSlot ? (
-        <p className="text-muted-foreground text-sm">Select a time slot to view details</p>
+        <p className="text-muted-foreground text-sm">
+          Select a time slot to view details
+        </p>
       ) : (
         <div className="space-y-3">
           <div className="text-sm font-medium text-muted-foreground mb-2">
             {selectedSlot.time}
           </div>
-          
+
           {selectedSlot.available ? (
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
@@ -35,22 +42,28 @@ const SlotStatusCard: React.FC<{ selectedSlot?: TimeSlot }> = ({ selectedSlot })
               </div>
               {selectedSlot.reason && (
                 <div>
-                  <span className="text-sm font-medium text-muted-foreground">Reason:</span>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Reason:
+                  </span>
                   <p className="text-sm mt-1">{selectedSlot.reason}</p>
                 </div>
               )}
               {selectedSlot.person && (
                 <div>
-                  <span className="text-sm font-medium text-muted-foreground">With:</span>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    With:
+                  </span>
                   <p className="text-sm mt-1">{selectedSlot.person}</p>
                 </div>
               )}
-              {selectedSlot.type === 'meeting' && selectedSlot.meetingLink && (
+              {selectedSlot.type === "meeting" && selectedSlot.meetingLink && (
                 <div>
-                  <span className="text-sm font-medium text-muted-foreground">Meeting Link:</span>
-                  <a 
-                    href={selectedSlot.meetingLink} 
-                    target="_blank" 
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Meeting Link:
+                  </span>
+                  <a
+                    href={selectedSlot.meetingLink}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-blue-600 hover:underline break-all block mt-1"
                   >
@@ -67,7 +80,9 @@ const SlotStatusCard: React.FC<{ selectedSlot?: TimeSlot }> = ({ selectedSlot })
               </div>
               {selectedSlot.reason && (
                 <div>
-                  <span className="text-sm font-medium text-muted-foreground">Reason:</span>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Reason:
+                  </span>
                   <p className="text-sm mt-1">{selectedSlot.reason}</p>
                 </div>
               )}
@@ -84,6 +99,59 @@ const Dashboard = () => {
   const [date, setDate] = React.useState<Date | undefined>(new Date());
   const [selectedSlot, setSelectedSlot] = React.useState<string | undefined>();
   const [slotsData, setSlotsData] = React.useState<TimeSlot[]>([]);
+  const { user } = useSelector((state: RootState) => state.auth);
+
+  // Load availability when date changes
+  React.useEffect(() => {
+    const loadAvailability = async () => {
+      console.log("Checking date and user id : ", date, user?._id);
+      if (!date || !user?._id) return;
+
+      try {
+        console.log("making api call from dashboard");
+        const dateString = date.toISOString().split("T")[0];
+        const response = await availabilityService.getAvailability(
+          user._id,
+          dateString
+        );
+        console.log("response :", response);
+        if (response.success && response.data) {
+          // Convert availability data to TimeSlot format
+          const availabilityMap = new Map();
+          response.data.forEach((avail: any) => {
+            const startTime = new Date(avail.startTime);
+            const timeString = startTime.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            });
+            availabilityMap.set(timeString, avail);
+          });
+
+          // Update slotsData with availability info
+          setSlotsData((prevSlots) =>
+            prevSlots.map((slot) => {
+              const availability = availabilityMap.get(slot.time);
+              if (availability) {
+                return {
+                  ...slot,
+                  available:
+                    availability.status === "UNAVAILABLE" ? false : true,
+                  reason: availability.reason || undefined,
+                };
+              }
+              return slot;
+            })
+          );
+        }
+      } catch (error) {
+        console.error("Failed to load availability:", error);
+        alert("Failed to load availability data");
+      }
+    };
+
+    loadAvailability();
+  }, [date, user?.id]);
 
   const handleSlotSelect = (time: string) => {
     setSelectedSlot(time);
@@ -91,10 +159,46 @@ const Dashboard = () => {
     console.log(`Selected slot: ${time} on ${date?.toDateString()}`);
   };
 
-  const handleSlotsUpdate = (updatedSlots: unknown[]) => {
-    // Here you would typically save to your backend API
-    console.log("Updated slots:", updatedSlots);
-    // For now, we'll just log the changes
+  const handleSlotsUpdate = async (updatedSlots: TimeSlot[]) => {
+    if (!user?.id || !date) return;
+
+    try {
+      // Convert TimeSlot format to AvailabilitySlot format
+      const availabilitySlots = updatedSlots
+        .filter((slot) => !slot.available && !slot.booked) // Only save unavailable slots
+        .map((slot) => {
+          // Parse time string to create Date objects
+          const timeMatch = slot.time.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+          if (!timeMatch) return null;
+
+          let hours = parseInt(timeMatch[1]);
+          const minutes = parseInt(timeMatch[2]);
+          const ampm = timeMatch[3].toUpperCase();
+
+          if (ampm === "PM" && hours !== 12) hours += 12;
+          if (ampm === "AM" && hours === 12) hours = 0;
+
+          const startTime = new Date(date);
+          startTime.setHours(hours, minutes, 0, 0);
+
+          const endTime = new Date(startTime);
+          endTime.setMinutes(endTime.getMinutes() + 30);
+
+          return {
+            startTime: startTime.toISOString(),
+            endTime: endTime.toISOString(),
+            status: "UNAVAILABLE" as const,
+            reason: slot.reason || "",
+          };
+        })
+        .filter(Boolean) as any[];
+
+      await availabilityService.updateAvailability(user.id, availabilitySlots);
+      alert("Availability updated successfully");
+    } catch (error) {
+      console.error("Failed to update availability:", error);
+      alert("Failed to update availability");
+    }
   };
 
   const handleSlotsData = (slots: TimeSlot[]) => {
@@ -102,7 +206,7 @@ const Dashboard = () => {
   };
 
   const getSelectedSlotDetails = (): TimeSlot | undefined => {
-    return slotsData.find(slot => slot.time === selectedSlot);
+    return slotsData.find((slot) => slot.time === selectedSlot);
   };
 
   return (

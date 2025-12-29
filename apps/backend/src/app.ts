@@ -8,7 +8,11 @@ import visitRoutes from "./routes/visits.routes"
 import deliveryRoutes from "./routes/Delivery.routes"
 import departmentRoutes from "./routes/department.routes"
 import projectRoutes from "./routes/project.routes"
+import availabilityRoutes from "./routes/availability.routes"
 import cookieParser from "cookie-parser";
+
+
+console.log("Importing availability routes...");
 
 
 const app = express();
@@ -52,6 +56,9 @@ app.use('/api/employees', employeeRoutes);
 app.use('/api/deliveries', deliveryRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/availability', availabilityRoutes);
+
+console.log("Availability routes registered at /api/availability");
 
 
 export default app;
