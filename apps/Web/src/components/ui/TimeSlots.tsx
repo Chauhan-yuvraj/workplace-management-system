@@ -22,6 +22,7 @@ interface TimeSlotsProps {
   editMode?: boolean;
   onSlotsUpdate?: (slots: TimeSlot[]) => void;
   onSlotsData?: (slots: TimeSlot[]) => void;
+  onSlotsChange?: (slots: TimeSlot[]) => void;
   availabilityData?: any[];
 }
 
@@ -32,6 +33,7 @@ export const TimeSlots: React.FC<TimeSlotsProps> = ({
   editMode = false,
   onSlotsUpdate,
   onSlotsData,
+  onSlotsChange,
   availabilityData,
 }) => {
   const {
@@ -57,6 +59,7 @@ export const TimeSlots: React.FC<TimeSlotsProps> = ({
     selectedDate,
     onSlotsUpdate,
     onSlotsData,
+    onSlotsChange,
     availabilityData,
   });
 

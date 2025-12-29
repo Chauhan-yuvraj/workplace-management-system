@@ -98,8 +98,8 @@ const Dashboard = () => {
   const { stats, chartData, recentActivity } = useDashboardData();
   const [date, setDate] = React.useState<Date | undefined>(new Date());
   const [selectedSlot, setSelectedSlot] = React.useState<string | undefined>();
-  const [selectedSlotData, setSelectedSlotData] = React.useState<TimeSlot | undefined>();
   const [availabilityData, setAvailabilityData] = React.useState<any[]>([]);
+  const [slotsData, setSlotsData] = React.useState<TimeSlot[]>([]);
   const { user } = useSelector((state: RootState) => state.auth);
 
   // Load availability when date changes
@@ -132,14 +132,40 @@ const Dashboard = () => {
 
   const handleSlotSelect = (slot: TimeSlot) => {
     setSelectedSlot(slot.time);
-    setSelectedSlotData(slot);
   };
 
   const handleSlotsUpdate = async (updatedSlots: TimeSlot[]) => {
     if (!user?._id || !date) return;
 
     try {
-      // Convert TimeSlot format to AvailabilitySlot format
+      // Create a map of current availability data for quick lookup
+      const currentAvailabilityMap = new Map();
+      availabilityData.forEach((avail: any) => {
+        const startTime = new Date(avail.startTime);
+        const timeString = startTime.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        });
+        currentAvailabilityMap.set(timeString, avail);
+      });
+
+      // Find slots that were previously unavailable but are now available (need to delete)
+      const slotsToDelete: string[] = [];
+      updatedSlots.forEach((slot) => {
+        if (slot.available && currentAvailabilityMap.has(slot.time)) {
+          // This slot was unavailable before but is now available
+          const availability = currentAvailabilityMap.get(slot.time);
+          slotsToDelete.push(availability._id);
+        }
+      });
+
+      // Delete the slots that are now available
+      for (const availabilityId of slotsToDelete) {
+        await availabilityService.deleteAvailability(availabilityId);
+      }
+
+      // Convert remaining unavailable slots to AvailabilitySlot format
       const availabilitySlots = updatedSlots
         .filter((slot) => !slot.available && !slot.booked) // Only save unavailable slots
         .map((slot) => {
@@ -169,7 +195,20 @@ const Dashboard = () => {
         })
         .filter(Boolean) as any[];
 
-      await availabilityService.updateAvailability(user._id, availabilitySlots);
+      // Update/create the remaining unavailable slots
+      if (availabilitySlots.length > 0) {
+        await availabilityService.updateAvailability(user._id, availabilitySlots);
+      }
+
+      // Refresh availability data after updates
+      const dateString = date.toISOString().split("T")[0];
+      const response = await availabilityService.getAvailability(user._id, dateString);
+      if (response.success && response.data) {
+        setAvailabilityData(response.data);
+      } else {
+        setAvailabilityData([]);
+      }
+
       alert("Availability updated successfully");
     } catch (error) {
       console.error("Failed to update availability:", error);
@@ -177,7 +216,13 @@ const Dashboard = () => {
     }
   };
 
+  const handleSlotsData = (slots: TimeSlot[]) => {
+    setSlotsData(slots);
+  };
 
+  const getSelectedSlotDetails = (): TimeSlot | undefined => {
+    return slotsData.find((slot) => slot.time === selectedSlot);
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -267,6 +312,7 @@ const Dashboard = () => {
                 selectedSlot={selectedSlot}
                 editMode={true}
                 onSlotsUpdate={handleSlotsUpdate}
+                onSlotsChange={handleSlotsData}
                 availabilityData={availabilityData}
               />
             </div>
@@ -274,7 +320,7 @@ const Dashboard = () => {
 
           <div className="w-full flex justify-center lg:justify-start">
             <div className="w-full max-w-sm mx-auto lg:mx-0">
-              <SlotStatusCard selectedSlot={selectedSlotData} />
+              <SlotStatusCard selectedSlot={getSelectedSlotDetails()} />
             </div>
           </div>
         </div>

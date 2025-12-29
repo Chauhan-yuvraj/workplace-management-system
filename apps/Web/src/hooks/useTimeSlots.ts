@@ -6,6 +6,7 @@ interface UseTimeSlotsProps {
   selectedDate?: Date;
   onSlotsUpdate?: (slots: TimeSlot[]) => void;
   onSlotsData?: (slots: TimeSlot[]) => void;
+  onSlotsChange?: (slots: TimeSlot[]) => void;
   availabilityData?: any[];
 }
 
@@ -13,6 +14,7 @@ export const useTimeSlots = ({
   selectedDate,
   onSlotsUpdate,
   onSlotsData,
+  onSlotsChange,
   availabilityData,
 }: UseTimeSlotsProps) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -149,9 +151,11 @@ export const useTimeSlots = ({
 
         setSlots(mergedSlots);
         onSlotsData?.(mergedSlots);
+        onSlotsChange?.(mergedSlots);
       } else {
         setSlots(newSlots);
         onSlotsData?.(newSlots);
+        onSlotsChange?.(newSlots);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -195,6 +199,7 @@ export const useTimeSlots = ({
     setSlots(newSlots);
     setSelectedSlotsForEdit(new Set());
     onSlotsData?.(newSlots);
+    onSlotsChange?.(newSlots);
   };
 
   const handleMarkUnavailable = () => {
@@ -218,6 +223,7 @@ export const useTimeSlots = ({
     setReasonModalOpen(false);
     setPendingSlotIndices([]);
     onSlotsData?.(newSlots);
+    onSlotsChange?.(newSlots);
   };
 
   const handleCancelReason = () => {
@@ -233,9 +239,44 @@ export const useTimeSlots = ({
   };
 
   const handleCancelEdit = () => {
-    const resetSlots = generateTimeSlots(); // Reset to all available
-    setSlots(resetSlots);
-    onSlotsData?.(resetSlots);
+    // Reset to the state before editing started - reload from availability data
+    if (selectedDate) {
+      const newSlots = generateTimeSlots();
+
+      // Re-merge availability data
+      if (availabilityData && availabilityData.length > 0) {
+        const availabilityMap = new Map();
+        availabilityData.forEach((avail: any) => {
+          const startTime = new Date(avail.startTime);
+          const timeString = startTime.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          });
+          availabilityMap.set(timeString, avail);
+        });
+
+        const mergedSlots = newSlots.map((slot) => {
+          const availability = availabilityMap.get(slot.time);
+          if (availability) {
+            return {
+              ...slot,
+              available: availability.status === "UNAVAILABLE" ? false : true,
+              reason: availability.reason || undefined,
+            };
+          }
+          return slot;
+        });
+
+        setSlots(mergedSlots);
+        onSlotsData?.(mergedSlots);
+        onSlotsChange?.(mergedSlots);
+      } else {
+        setSlots(newSlots);
+        onSlotsData?.(newSlots);
+        onSlotsChange?.(newSlots);
+      }
+    }
     setIsEditing(false);
     setSelectedSlotsForEdit(new Set());
   };
