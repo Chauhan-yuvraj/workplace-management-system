@@ -7,6 +7,9 @@ const router = Router();
 // All meeting routes require authentication
 router.use(protect);
 
+// Get all meetings (with permission-based filtering)
+router.get("/", MeetingController.getAllMeetings);
+
 // Create meeting
 router.post("/", MeetingController.createMeeting);
 

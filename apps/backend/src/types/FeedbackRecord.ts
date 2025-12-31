@@ -1,1 +1,1 @@
-export { UserRecord, FeedbackRecord, SerializablePathData, SerializableCanvasPage } from '@repo/types';
+export { VisitorRecord, FeedbackRecord, SerializablePathData, SerializableCanvasPage } from '@repo/types';

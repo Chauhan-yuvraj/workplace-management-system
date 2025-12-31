@@ -13,13 +13,13 @@ const router = Router();
 
 router
   .route("/")
-  .get(protect, checkPermission('manage_visitors'), GetVisitors)
-  .post(protect, checkPermission('manage_visitors'), upload.single('profileImg'), PostVisitor);
+  .get(protect, checkPermission('view_all_visitors', 'view_department_visitors'), GetVisitors)
+  .post(protect, checkPermission('create_visitors'), upload.single('profileImg'), PostVisitor);
 
 router
   .route("/:id")
-  .get(protect, checkPermission('manage_visitors'), GetVisitor)
-  .patch(protect, checkPermission('manage_visitors'), upload.single('profileImg'), UpdateVisitor)
-  .delete(protect, checkPermission('manage_visitors'), DeleteVisitor);
+  .get(protect, checkPermission('view_all_visitors', 'view_department_visitors'), GetVisitor)
+  .patch(protect, checkPermission('view_all_visitors', 'view_department_visitors', 'create_visitors'), upload.single('profileImg'), UpdateVisitor)
+  .delete(protect, checkPermission('view_all_visitors', 'view_department_visitors', 'create_visitors'), DeleteVisitor);
 
 export default router;

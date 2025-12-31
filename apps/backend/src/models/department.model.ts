@@ -21,7 +21,7 @@ const departmentSchema = new Schema(
     departmentHod: {
       type: Schema.Types.ObjectId,
       ref: "Employee",
-      required: true,
+      required: false,
     },
     isActive: {
       type: Boolean,
@@ -40,7 +40,7 @@ departmentSchema.index({ departmentName: 1, departmentCode: 1 }, { unique: true 
 departmentSchema.virtual("employeesCount", {
   ref: "Employee",
   localField: "_id",
-  foreignField: "departmentId",
+  foreignField: "departments",
   count: true,
 });
 

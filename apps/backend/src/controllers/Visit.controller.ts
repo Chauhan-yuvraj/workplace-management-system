@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Visit } from "../models/visits.model";
 import { Visitor } from "../models/visitor.model";
 import { Employee } from "../models/employees.model";
+import { ROLE_PERMISSIONS, UserRole } from "@repo/types";
 
 // --- Get All Visits ---
 export const GetVisits = async (req: Request, res: Response) => {
@@ -15,6 +16,16 @@ export const GetVisits = async (req: Request, res: Response) => {
     }
 
     try {
+        const userPermissions = ROLE_PERMISSIONS[user.role as UserRole] || [];
+
+        // Check if user has permission to view visits
+        if (!userPermissions.includes('view_all_visits') && !userPermissions.includes('view_department_visits')) {
+            return res.status(403).json({
+                success: false,
+                message: "You do not have permission to view visits"
+            });
+        }
+
         // Optional: Filter by status or host if query params are present
         const filter: any = {};
 
@@ -24,9 +35,17 @@ export const GetVisits = async (req: Request, res: Response) => {
         if (req.query.hostId) {
             filter['host.id'] = req.query.hostId;
         }
-        if (user.role === 'employee') {
-            filter['host.id'] = user.id;
+
+        // Apply department-based filtering for managers and employees
+        if (userPermissions.includes('view_department_visits') && !userPermissions.includes('view_all_visits')) {
+            // For department filtering, we need to find visits where the host is in the same department
+            // For now, let's allow them to see visits they're hosting or involved in
+            filter.$or = [
+                { 'host.id': user.id },
+                { 'createdBy.id': user.id }
+            ];
         }
+
         const visits = await Visit.find(filter)
             .sort({ scheduledCheckIn: 1, createdAt: -1 });
 
@@ -71,6 +90,22 @@ export const GetVisit = async (req: Request, res: Response) => {
 // --- Schedule a Visit (Create) ---
 export const ScheduleVisit = async (req: Request, res: Response) => {
     try {
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized"
+            });
+        }
+
+        const userPermissions = ROLE_PERMISSIONS[user.role as UserRole] || [];
+        if (!userPermissions.includes('create_visits')) {
+            return res.status(403).json({
+                success: false,
+                message: "You do not have permission to create visits"
+            });
+        }
+
         const {
             visitorId,
             hostId,
@@ -90,7 +125,7 @@ export const ScheduleVisit = async (req: Request, res: Response) => {
         }
 
         // 2. Fetch Host Details for Snapshot
-        const host = await Employee.findById(hostId).populate('departmentId', 'departmentName');
+        const host = await Employee.findById(hostId).populate('departments', 'departmentName');
         if (!host) {
             return res.status(404).json({ message: "Host (Employee) not found." });
         }
@@ -108,7 +143,7 @@ export const ScheduleVisit = async (req: Request, res: Response) => {
             host: {
                 id: host._id,
                 name: host.name,
-                department: (host as any).departmentId?.departmentName || null,
+                department: (host as any).departments?.[0]?.departmentName || null,
                 profileImgUri: host.profileImgUri
             },
             status: "PENDING",

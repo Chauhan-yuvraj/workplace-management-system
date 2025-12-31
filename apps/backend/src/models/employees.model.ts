@@ -9,7 +9,7 @@ export interface IEmployeeMethods {
 
 type EmployeeModel = Model<IEmployee, {}, IEmployeeMethods>;
 
-const EmployeeSchema = new Schema<IEmployee, EmployeeModel, IEmployeeMethods>(
+const EmployeeSchema = new Schema(
   {
     name: { type: String, required: true, trim: true },
 
@@ -23,7 +23,7 @@ const EmployeeSchema = new Schema<IEmployee, EmployeeModel, IEmployeeMethods>(
 
     phone: { type: String, trim: true },
     profileImgUri: { type: String },
-    departmentId: { type: Schema.Types.ObjectId, ref: "Department" },
+    departments: [{ type: Schema.Types.ObjectId, ref: "Department" }],
     jobTitle: { type: String, required: true, trim: true },
 
     role: {

@@ -4,11 +4,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import Modal from "@/components/ui/Modal";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { usePermission } from "@/hooks/auth/usePermission";
 import { getDepartments, createDepartment, updateDepartment, deleteDepartment } from "@/services/department.service";
-import { fetchActiveEmployees } from "@/services/employees.service";
-import type { ActiveEmployeeOption } from "@repo/types";
 import { Trash2, Edit2 } from "lucide-react";
 import type { IDepartment } from "@repo/types";
 
@@ -19,7 +16,6 @@ export default function Departments() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<IDepartment | null>(null);
   const [formData, setFormData] = useState({ departmentName: "", departmentCode: "", departmentDescription: "", departmentHod: "", isActive: true });
-  const [hodOptions, setHodOptions] = useState<ActiveEmployeeOption[]>([]);
 
   const fetchDepartments = async () => {
     setIsLoading(true);
@@ -65,35 +61,33 @@ export default function Departments() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // departmentHod is required by backend model
-      if (!formData.departmentHod) {
-        alert('Please select Head of Department');
-        return;
+      // Prepare data - only include departmentHod if it's not empty
+      const submitData: any = {
+        departmentName: formData.departmentName.trim(),
+        departmentCode: formData.departmentCode.trim(),
+        departmentDescription: formData.departmentDescription.trim(),
+        isActive: formData.isActive,
+      };
+
+      // Only include departmentHod if it's provided and not empty
+      if (formData.departmentHod && formData.departmentHod.trim() !== "") {
+        submitData.departmentHod = formData.departmentHod;
       }
 
       if (editingDepartment && editingDepartment._id) {
-        await updateDepartment(editingDepartment._id, formData);
+        await updateDepartment(editingDepartment._id, submitData);
       } else {
-        await createDepartment(formData);
+        await createDepartment(submitData);
       }
       fetchDepartments();
       handleCloseModal();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving department", error);
+      const errorMessage = error.response?.data?.message || error.message || "Failed to save department";
+      alert(errorMessage);
     }
   };
 
-  useEffect(() => {
-    const loadHods = async () => {
-      try {
-        const res = await fetchActiveEmployees();
-        setHodOptions(res);
-      } catch (err) {
-        console.error("Failed to load HOD options", err);
-      }
-    };
-    loadHods();
-  }, []);
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this department?")) {
@@ -179,20 +173,6 @@ export default function Departments() {
           <div>
             <Label htmlFor="departmentDescription">Description</Label>
             <Input id="departmentDescription" value={formData.departmentDescription} onChange={(e) => setFormData({ ...formData, departmentDescription: e.target.value })} />
-          </div>
-
-          <div>
-            <Label htmlFor="departmentHod">Head of Department</Label>
-            <Select value={formData.departmentHod} onValueChange={(v) => setFormData({ ...formData, departmentHod: v })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select HOD" />
-              </SelectTrigger>
-              <SelectContent>
-                {hodOptions.map((h) => (
-                  <SelectItem key={h._id} value={h._id}>{h.name}{h.jobTitle ? ` — ${h.jobTitle}` : ''}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           <div>

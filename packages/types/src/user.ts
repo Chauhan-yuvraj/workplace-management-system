@@ -5,13 +5,62 @@ export enum UserRole {
   ADMIN = 'admin'
 }
 
+export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
+  [UserRole.ADMIN]: [
+    'manage_departments',
+    'manage_employees',
+    'view_all_meetings',
+    'create_meetings',
+    'view_all_visits',
+    'create_visits',
+    'view_all_visitors',
+    'create_visitors',
+    'view_all_deliveries',
+    'create_deliveries',
+    'manage_projects',
+    'manage_records'
+  ],
+  [UserRole.HR]: [
+    'manage_departments',
+    'manage_employees',
+    'view_all_meetings',
+    'create_meetings',
+    'view_all_visits',
+    'create_visits',
+    'view_all_visitors',
+    'create_visitors',
+    'view_all_deliveries',
+    'create_deliveries',
+    'manage_projects',
+    'manage_records'
+  ],
+  [UserRole.MANAGER]: [
+    'view_department_meetings',
+    'create_meetings',
+    'view_department_visits',
+    'create_visits',
+    'view_department_visitors',
+    'create_visitors',
+    'view_all_deliveries',
+    'create_deliveries',
+    'manage_projects'
+  ],
+  [UserRole.EMPLOYEE]: [
+    'view_department_meetings',
+    'view_department_visits',
+    'view_department_visitors',
+    'view_all_deliveries',
+    'create_deliveries'
+  ]
+};
+
 export interface IEmployee {
   _id?: string;
   id?: string;
   name: string;
   email: string;
   phone?: string;
-  departmentId?: string | { _id: string; departmentName: string };
+  departments?: string[] | { _id: string; departmentName: string }[];
   jobTitle: string;
   role: UserRole;
   isActive: boolean;
@@ -44,6 +93,21 @@ export type Guest = {
   name: string,
   position: string;
   img: string
+}
+
+export interface Visitor {
+    _id: string;
+    name: string;
+    email?: string;
+    phone?: string;
+    profileImgUri?: string;
+    isVip: boolean;
+    isBlocked: boolean;
+    notes?: string;
+    organizationId?: string;
+    companyNameFallback?: string;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export interface Admin {

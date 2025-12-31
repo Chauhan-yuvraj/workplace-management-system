@@ -9,14 +9,12 @@ export interface SerializableCanvasPage {
     paths: SerializablePathData[];
 }
 
-export interface UserRecord {
-    guestName: string;
-    guestImgUri?: string;
-    guestPhone?: string;
-    guestEmail?: string;
-    guestCompany?: string;
-    timestamp?: string;
-    featured?: boolean;
+export interface VisitorRecord {
+    name: string;
+    email?: string;
+    phone?: string;
+    company?: string;
+    profileImgUri?: string;
 }
 
 export interface FeedbackRecord {
@@ -30,7 +28,7 @@ export interface FeedbackRecord {
         company: string;
         profileImgUri?: string;
     };
-    guest?: UserRecord;
+    visitor?: VisitorRecord;
     
     pages: SerializableCanvasPage[];
     signature: SerializablePathData[];

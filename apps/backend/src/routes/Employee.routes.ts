@@ -30,7 +30,7 @@ router
 
   .get(
     protect,
-    checkPermission('view_active_employees', 'manage_employees'),
+    checkPermission('manage_employees'),
     GetEmployees)
 
   .post(
@@ -42,7 +42,7 @@ router
   .route("/:id")
   .get(
     protect,
-    checkPermission('view_active_employees', 'manage_employees'),
+    checkPermission('manage_employees'),
     GetEmployee)
 
   .patch(

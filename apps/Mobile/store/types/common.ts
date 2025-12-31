@@ -1,5 +1,1 @@
-export type Result<T> = {
-    success: boolean;
-    data?: T;
-    error?: string;
-};
+export { Result } from '@repo/types';

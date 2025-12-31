@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Delivery } from "../models/delivery.model";
-import { UserRole } from "@repo/types";
+import { UserRole, ROLE_PERMISSIONS } from "@repo/types";
 
 export const createDelivery = async (req: Request, res: Response) => {
   try {
@@ -10,6 +10,14 @@ export const createDelivery = async (req: Request, res: Response) => {
 
     if (!user) {
       return res.status(401).json({ message: "Not authorized" });
+    }
+
+    const userPermissions = ROLE_PERMISSIONS[user.role as UserRole] || [];
+    if (!userPermissions.includes('create_deliveries')) {
+      return res.status(403).json({
+        success: false,
+        message: "You do not have permission to create deliveries"
+      });
     }
 
     let targetRecipientId = recipientId;
@@ -41,6 +49,16 @@ export const getDeliveries = async (req: Request, res: Response) => {
     const user = req.user
     if (!user) {
       return res.status(401).json({ message: "Not authorized" });
+    }
+
+    const userPermissions = ROLE_PERMISSIONS[user.role as UserRole] || [];
+
+    // Check if user has permission to view deliveries
+    if (!userPermissions.includes('view_all_deliveries')) {
+      return res.status(403).json({
+        success: false,
+        message: "You do not have permission to view deliveries"
+      });
     }
 
     let filter: any = { isDeleted: { $ne: true } };

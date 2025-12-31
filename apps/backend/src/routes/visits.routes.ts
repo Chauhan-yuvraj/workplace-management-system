@@ -12,13 +12,13 @@ const router = Router();
 
 router
     .route("/")
-    .get(protect, checkPermission('manage_visits', 'view_self_visits'), GetVisits)
-    .post(protect, checkPermission('manage_visits', 'view_self_visits'), ScheduleVisit); // Any employee can schedule a visit?
+    .get(protect, checkPermission('view_all_visits', 'view_department_visits'), GetVisits)
+    .post(protect, checkPermission('create_visits'), ScheduleVisit);
 
 router
     .route("/:id")
-    .get(protect, checkPermission('manage_visits', 'view_self_visits'), GetVisit)
-    .patch(protect, checkPermission('manage_visits', 'view_self_visits'), UpdateVisit)
-    .delete(protect, checkPermission('manage_visits'), DeleteVisit); // Only admins/HR can delete history
+    .get(protect, checkPermission('view_all_visits', 'view_department_visits'), GetVisit)
+    .patch(protect, checkPermission('view_all_visits', 'view_department_visits', 'create_visits'), UpdateVisit)
+    .delete(protect, checkPermission('view_all_visits'), DeleteVisit);
 
 export default router;

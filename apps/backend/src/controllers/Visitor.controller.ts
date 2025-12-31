@@ -1,9 +1,30 @@
 import { Request, Response } from "express";
 import { Visitor } from "../models/visitor.model";
 import { uploadFileToCloudinary } from "../utils/cloudinary";
+import { ROLE_PERMISSIONS, UserRole } from "@repo/types";
 
 export const GetVisitors = async (req: Request, res: Response) => {
     try {
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized"
+            });
+        }
+
+        const userPermissions = ROLE_PERMISSIONS[user.role as UserRole] || [];
+
+        // Check if user has permission to view visitors
+        if (!userPermissions.includes('view_all_visitors') && !userPermissions.includes('view_department_visitors')) {
+            return res.status(403).json({
+                success: false,
+                message: "You do not have permission to view visitors"
+            });
+        }
+
+        // For now, allow all users with permission to see all visitors
+        // In the future, we could implement department-based filtering for visitors
         const visitors = await Visitor.find().sort({ createdAt: -1 });
         res.status(200).json({
             success: true,
@@ -43,15 +64,31 @@ export const GetVisitor = async (req: Request, res: Response) => {
 
 export const PostVisitor = async (req: Request, res: Response) => {
     try {
-        const { 
-            name, 
-            email, 
-            phone, 
-            isVip, 
-            isBlocked, 
-            notes, 
-            organizationId, 
-            companyNameFallback 
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized"
+            });
+        }
+
+        const userPermissions = ROLE_PERMISSIONS[user.role as UserRole] || [];
+        if (!userPermissions.includes('create_visitors')) {
+            return res.status(403).json({
+                success: false,
+                message: "You do not have permission to create visitors"
+            });
+        }
+
+        const {
+            name,
+            email,
+            phone,
+            isVip,
+            isBlocked,
+            notes,
+            organizationId,
+            companyNameFallback
         } = req.body;
 
         if (!name) {

@@ -1,13 +1,6 @@
-export interface SerializablePathData {
-    svg: string;
-    color?: string;
-    strokeWidth?: number;
-}
+import type { SerializablePathData, SerializableCanvasPage } from '@repo/types';
 
-export interface SerializableCanvasPage {
-    id: string;
-    paths: SerializablePathData[];
-}
+export type { SerializablePathData, SerializableCanvasPage };
 
 export interface RecordVisitor {
     _id: string;

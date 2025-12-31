@@ -77,7 +77,7 @@ export const UpdateMe = async (req: Request, res: Response) => {
 
 export const GetEmployee = async (req: Request, res: Response) => {
     try {
-        const employee = await Employee.findById(req.params.id).populate('departmentId', 'departmentName');
+        const employee = await Employee.findById(req.params.id).populate('departments', 'departmentName');
         if (!employee) {
             return res.status(404).json({
                 success: false,
@@ -99,7 +99,7 @@ export const GetEmployee = async (req: Request, res: Response) => {
 
 export const GetEmployees = async (req: Request, res: Response) => {
     try {
-        const employees = await Employee.find().populate('departmentId', 'departmentName').sort({ createdAt: -1 });
+        const employees = await Employee.find().populate('departments', 'departmentName').sort({ createdAt: -1 });
         res.status(200).json({
             success: true,
             count: employees.length,
@@ -116,7 +116,7 @@ export const GetEmployees = async (req: Request, res: Response) => {
 
 export const PostEmployee = async (req: Request, res: Response) => {
     try {
-        const { name, email, phone, departmentId, jobTitle, role, isActive, password } = req.body;
+        const { name, email, phone, departments, jobTitle, role, isActive, password } = req.body;
         let profileImgUri = req.body.profileImgUri;
 
         if (req.file) {
@@ -142,7 +142,7 @@ export const PostEmployee = async (req: Request, res: Response) => {
             email,
             phone,
             profileImgUri,
-            departmentId,
+            departments,
             jobTitle,
             role: role || "HOST",
             isActive: isActive === undefined ? true : (isActive === 'true' || isActive === true), // Handle string from FormData & Default
@@ -220,7 +220,7 @@ export const UpdateEmployee = async (req: Request, res: Response) => {
         // (e.g., preventing a user from changing their own 'isAdmin' flag if you didn't check it)
         const allowedUpdates = [
             'name', 'email', 'phone', 'profileImgUri',
-            'departmentId', 'jobTitle', 'role', 'isActive'
+            'departments', 'jobTitle', 'role', 'isActive'
         ];
 
         // 2. Filter req.body to only include allowed fields

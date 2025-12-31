@@ -2,6 +2,7 @@ import { Meeting, IMeeting } from "../models/meeting.model";
 import { MeetingAvailabilityLog } from "../models/meetingAvailabilityLog.model";
 import { Availability } from "../models/availability.model";
 import { Schedule } from "../models/schedules.model";
+import { MeetingTimeSlot } from "@repo/types";
 import mongoose from "mongoose";
 
 export interface AvailabilityCheckResult {
@@ -9,12 +10,6 @@ export interface AvailabilityCheckResult {
   status: "available" | "unavailable" | "has_meeting" | "out_of_office";
   reason?: string;
   conflictingMeetingId?: string;
-}
-
-export interface MeetingTimeSlot {
-  date: string;
-  startTime: string;
-  endTime: string;
 }
 
 export class MeetingService {

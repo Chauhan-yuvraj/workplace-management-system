@@ -1,8 +1,59 @@
 import { Request, Response } from "express";
 import { MeetingService } from "../services/meeting.service";
 import { Meeting } from "../models/meeting.model";
+import { ROLE_PERMISSIONS, UserRole } from "@repo/types";
 
 export class MeetingController {
+  // Get all meetings with permission-based filtering
+  static async getAllMeetings(req: Request, res: Response) {
+    try {
+      const user = (req as any).user;
+      const userPermissions = ROLE_PERMISSIONS[user?.role as UserRole] || [];
+
+      let query = {};
+
+      // Filter based on permissions
+      if (userPermissions.includes('view_all_meetings')) {
+        // Admin and HR can see all meetings
+        query = {};
+      } else if (userPermissions.includes('view_department_meetings')) {
+        // Managers and employees can only see meetings related to their departments
+        query = {
+          $or: [
+            { organizer: user._id },
+            { host: user._id },
+            { participants: user._id },
+            // For department filtering, we need to check if any participant/host/organizer is in the same department
+            // This is complex, so for now we'll show meetings where the user is directly involved
+          ]
+        };
+      } else {
+        return res.status(403).json({
+          success: false,
+          message: "You do not have permission to view meetings"
+        });
+      }
+
+      const meetings = await Meeting.find(query)
+        .populate('organizer', 'name email departments')
+        .populate('host', 'name email departments')
+        .populate('participants', 'name email departments')
+        .sort({ createdAt: -1 });
+
+      res.json({
+        success: true,
+        data: meetings
+      });
+
+    } catch (error: any) {
+      console.error("Error fetching meetings:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to fetch meetings"
+      });
+    }
+  }
+
   // Create a new meeting
   static async createMeeting(req: Request, res: Response) {
     try {
@@ -18,12 +69,12 @@ export class MeetingController {
         remarks
       } = req.body;
 
-      // Check if user has permission (MANAGER and above)
-      const userRole = (req as any).user?.role;
-      if (!userRole || !['manager', 'admin'].includes(userRole)) {
+      // Check if user has permission to create meetings
+      const userPermissions = ROLE_PERMISSIONS[(req as any).user?.role as UserRole] || [];
+      if (!userPermissions.includes('create_meetings')) {
         return res.status(403).json({
           success: false,
-          message: "Only managers and administrators can create meetings"
+          message: "You do not have permission to create meetings"
         });
       }
 
@@ -86,11 +137,11 @@ export class MeetingController {
       const meetingData = req.body;
 
       // Check permissions
-      const userRole = (req as any).user?.role;
-      if (!userRole || !['manager', 'admin'].includes(userRole)) {
+      const userPermissions = ROLE_PERMISSIONS[(req as any).user?.role as UserRole] || [];
+      if (!userPermissions.includes('create_meetings')) {
         return res.status(403).json({
           success: false,
-          message: "Only managers and administrators can force create meetings"
+          message: "You do not have permission to create meetings"
         });
       }
 
@@ -178,11 +229,11 @@ export class MeetingController {
       const updateData = req.body;
 
       // Check permissions
-      const userRole = (req as any).user?.role;
-      if (!userRole || !['manager', 'admin'].includes(userRole)) {
+      const userPermissions = ROLE_PERMISSIONS[(req as any).user?.role as UserRole] || [];
+      if (!userPermissions.includes('create_meetings')) {
         return res.status(403).json({
           success: false,
-          message: "Only managers and administrators can update meetings"
+          message: "You do not have permission to update meetings"
         });
       }
 
@@ -258,11 +309,11 @@ export class MeetingController {
       const { meetingId } = req.params;
 
       // Check permissions
-      const userRole = (req as any).user?.role;
-      if (!userRole || !['manager', 'admin'].includes(userRole)) {
+      const userPermissions = ROLE_PERMISSIONS[(req as any).user?.role as UserRole] || [];
+      if (!userPermissions.includes('create_meetings')) {
         return res.status(403).json({
           success: false,
-          message: "Only project managers and administrators can delete meetings"
+          message: "You do not have permission to delete meetings"
         });
       }
 
