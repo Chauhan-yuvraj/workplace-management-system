@@ -174,8 +174,6 @@ export const mergeSlotsWithData = (
   availabilityData?: any[],
   meetingsData?: any[]
 ): TimeSlot[] => {
-  const selectedDateStr = selectedDate.toISOString().split('T')[0];
-
   // Create availability map
   const availabilityMap = new Map();
   if (availabilityData && availabilityData.length > 0) {
@@ -190,50 +188,11 @@ export const mergeSlotsWithData = (
     });
   }
 
-  // Create meetings map for the selected date
-  const meetingsMap = new Map();
-  if (meetingsData && meetingsData.length > 0) {
-    meetingsData.forEach((meeting: any) => {
-      if (meeting.status === 'scheduled' && meeting.timeSlots) {
-        meeting.timeSlots.forEach((slot: any) => {
-          if (slot.date === selectedDateStr) {
-            const startTime = new Date(slot.startTime);
-            const timeString = startTime.toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: true,
-            });
-            meetingsMap.set(timeString, {
-              ...meeting,
-              slotStartTime: slot.startTime,
-              slotEndTime: slot.endTime,
-            });
-          }
-        });
-      }
-    });
-  }
-
-  // Merge slots with availability and meetings (meetings take priority)
+  // Merge slots with availability
   return slots.map((slot) => {
-    const meeting = meetingsMap.get(slot.time);
     const availability = availabilityMap.get(slot.time);
 
-    // Meeting takes priority - mark as booked
-    if (meeting) {
-      const hostName = typeof meeting.host === 'object' && meeting.host?.name
-        ? meeting.host.name
-        : 'Meeting';
-      return {
-        ...slot,
-        available: false,
-        booked: true,
-        reason: meeting.title,
-        person: hostName,
-        type: SLOT_TYPES.MEETING,
-        meetingLink: meeting.isVirtual ? meeting.location : undefined,
-      };
-    } else if (availability) {
+    if (availability) {
       return {
         ...slot,
         available: availability.status === 'UNAVAILABLE' ? false : true,

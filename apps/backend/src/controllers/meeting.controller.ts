@@ -110,11 +110,7 @@ export class MeetingController {
       const finalDepartments = scope === 'departments' ? departments : [];
 
       // Check availability first
-      const allAttendees = [...participants];
-      if (!allAttendees.includes(host)) {
-        allAttendees.push(host);
-      }
-      const availabilityResults = await MeetingService.checkAvailability(allAttendees, timeSlots);
+      const availabilityResults = await MeetingService.checkAvailability(participants, timeSlots);
 
       // Find participants with conflicts
       const participantsWithConflicts = [];
@@ -340,48 +336,6 @@ export class MeetingController {
       const { meetingId } = req.params;
       const { timeSlots, forceSchedule = false } = req.body;
 
-      // Get current meeting to get attendees
-      const currentMeeting = await Meeting.findById(meetingId);
-      if (!currentMeeting) {
-        return res.status(404).json({
-          success: false,
-          message: "Meeting not found"
-        });
-      }
-
-      // Get all attendees
-      const allAttendees = [...currentMeeting.participants.map((p: any) => p.toString())];
-      if (!allAttendees.includes(currentMeeting.host.toString())) {
-        allAttendees.push(currentMeeting.host.toString());
-      }
-
-      // Check availability for new time slots
-      const availabilityResults = await MeetingService.checkAvailability(allAttendees, timeSlots);
-
-      // Find attendees with conflicts
-      const attendeesWithConflicts = [];
-      for (let slotIndex = 0; slotIndex < availabilityResults.length; slotIndex++) {
-        const slotResults = availabilityResults[slotIndex];
-        for (const result of slotResults) {
-          if (result.status !== 'available') {
-            const employee = await mongoose.model('Employee').findById(result.employeeId);
-            if (employee) {
-              attendeesWithConflicts.push({
-                userId: result.employeeId,
-                userName: employee.name,
-                isAvailable: false,
-                reason: result.reason,
-                conflictingMeeting: result.conflictingMeetingId ? {
-                  title: 'Existing meeting',
-                  startTime: 'Check availability logs',
-                  endTime: 'Check availability logs'
-                } : undefined
-              });
-            }
-          }
-        }
-      }
-
       const { meeting, availabilityLogs } = await MeetingService.updateMeetingTimeSlots(
         meetingId,
         timeSlots,
@@ -391,8 +345,7 @@ export class MeetingController {
       res.json({
         success: true,
         data: meeting,
-        availabilityLogs,
-        conflicts: attendeesWithConflicts.length > 0 ? attendeesWithConflicts : undefined
+        availabilityLogs
       });
 
     } catch (error: any) {
