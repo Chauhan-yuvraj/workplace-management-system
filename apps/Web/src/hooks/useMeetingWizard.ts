@@ -187,14 +187,6 @@ export const useMeetingWizard = ({ isOpen, meetingToEdit }: UseMeetingWizardProp
     }
   };
 
-  const handleForceCreate = async () => {
-    // Force create the meeting (this would need a separate API endpoint)
-    // For now, just close the modal and consider it successful
-    setShowConflictsModal(false);
-    setConflicts([]);
-    // Note: In a real implementation, you'd call a force create API here
-    return { success: true, message: "Meeting created with conflicts noted" };
-  };
 
   const handleCancelConflicts = () => {
     setShowConflictsModal(false);
@@ -231,14 +223,12 @@ export const useMeetingWizard = ({ isOpen, meetingToEdit }: UseMeetingWizardProp
         result = await createMeeting(meetingData);
       }
 
-      if (result?.success) {
-        const resultWithConflicts = result as any; // Type assertion for conflicts
-        if (resultWithConflicts.conflicts && resultWithConflicts.conflicts.length > 0) {
-          // Show conflicts modal
-          setConflicts(resultWithConflicts.conflicts);
-          setShowConflictsModal(true);
-          return { success: true, data: result.data, hasConflicts: true };
-        }
+      if ((result as any)?.conflicts && (result as any).conflicts.length > 0) {
+        // Show conflicts modal
+        setConflicts((result as any).conflicts);
+        setShowConflictsModal(true);
+        return { success: result.success, data: result.data, hasConflicts: true };
+      } else if (result?.success) {
         return { success: true, data: result.data };
       } else {
         return { success: false, message: result?.message || "Failed to save meeting" };
@@ -279,7 +269,6 @@ export const useMeetingWizard = ({ isOpen, meetingToEdit }: UseMeetingWizardProp
     handleNext,
     handleBack,
     handleSubmit,
-    handleForceCreate,
     handleCancelConflicts,
   };
 };

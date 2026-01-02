@@ -46,17 +46,16 @@ export default function MeetingModal({
     handleNext,
     handleBack,
     handleSubmit,
-    handleForceCreate,
+
     handleCancelConflicts,
   } = useMeetingWizard({ isOpen, meetingToEdit });
 
   const handleConfirmSubmit = async () => {
     const result = await handleSubmit();
-    if (result?.success) {
-      if (result.hasConflicts) {
-        // Conflicts modal will be shown, don't close yet
-        return;
-      }
+    if (result?.hasConflicts) {
+      // Conflicts modal will be shown, don't close yet
+      return;
+    } else if (result?.success) {
       onClose();
     } else {
       alert(result?.message || "Failed to save meeting");
@@ -213,17 +212,6 @@ export default function MeetingModal({
                 onClick={handleCancelConflicts}
               >
                 Cancel
-              </Button>
-              <Button
-                type="button"
-                onClick={async () => {
-                  const result = await handleForceCreate();
-                  if (result?.success) {
-                    onClose();
-                  }
-                }}
-              >
-                Create Meeting Anyway
               </Button>
             </div>
           </div>

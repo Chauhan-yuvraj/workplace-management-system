@@ -45,7 +45,7 @@ export const useAvailability = () => {
       if (!date || !user?._id) return;
 
       try {
-        console.log("making api call from dashboard");
+        // console.log("making api call from dashboard");
         const dateString = date.getFullYear() + '-' + 
           String(date.getMonth() + 1).padStart(2, '0') + '-' + 
           String(date.getDate()).padStart(2, '0');
@@ -53,7 +53,7 @@ export const useAvailability = () => {
           user._id,
           dateString
         );
-        console.log("response :", response);
+        // console.log("response :", response);
         if (response.success && response.data) {
           setAvailabilityData(response.data);
         } else {

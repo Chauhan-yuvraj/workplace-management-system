@@ -118,11 +118,7 @@ export class MeetingService {
     session.startTransaction();
 
     try {
-      // Create the meeting
-      const meeting = new Meeting(meetingData);
-      await meeting.save({ session });
-
-      // Check availability and create logs
+      // Check availability first before creating the meeting
       const timeSlotsForCheck = meetingData.timeSlots!.map((slot) => ({
         date: slot.date,
         startTime:
@@ -139,9 +135,23 @@ export class MeetingService {
         timeSlotsForCheck
       );
 
+      // Check for conflicts if not forcing schedule
+      if (!forceSchedule) {
+        const hasConflicts = availabilityResults.some(slotResults =>
+          slotResults.some(result => result.status !== "available")
+        );
+        if (hasConflicts) {
+          throw new Error("Meeting conflicts detected. Use forceSchedule to override conflicts.");
+        }
+      }
+
+      // Create the meeting
+      const meeting = new Meeting(meetingData);
+      await meeting.save({ session });
+
       const availabilityLogs = [];
 
-      // Process each time slot
+      // Process each time slot and create logs
       for (
         let slotIndex = 0;
         slotIndex < meetingData.timeSlots!.length;

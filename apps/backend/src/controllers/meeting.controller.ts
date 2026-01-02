@@ -12,46 +12,48 @@ export class MeetingController {
       const user = (req as any).user;
       const userPermissions = ROLE_PERMISSIONS[user?.role as UserRole] || [];
 
-      let query: any = { status: { $ne: 'cancelled' } };
+      let query: any = { status: { $ne: "cancelled" } };
 
       // Filter based on permissions and meeting scope
-      if (userPermissions.includes('view_all_meetings')) {
+      if (userPermissions.includes("view_all_meetings")) {
         // Admin and HR can see all meetings
-        query = { status: { $ne: 'cancelled' } };
-      } else if (userPermissions.includes('view_department_meetings')) {
+        query = { status: { $ne: "cancelled" } };
+      } else if (userPermissions.includes("view_department_meetings")) {
         // Managers and employees can see meetings based on scope
         query = {
-          status: { $ne: 'cancelled' },
+          status: { $ne: "cancelled" },
           $or: [
-            { scope: 'general' }, // All general meetings
-            { scope: 'departments', departments: { $in: user.departments || [] } } // Department-specific meetings
+            { scope: "general" }, // All general meetings
+            {
+              scope: "departments",
+              departments: { $in: user.departments || [] },
+            }, // Department-specific meetings
             // Note: 'separate' meetings are only visible to admins/HR
-          ]
+          ],
         };
       } else {
         return res.status(403).json({
           success: false,
-          message: "You do not have permission to view meetings"
+          message: "You do not have permission to view meetings",
         });
       }
 
       const meetings = await Meeting.find(query)
-        .populate('organizer', 'name email departments')
-        .populate('host', 'name email departments')
-        .populate('participants', 'name email departments')
-        .populate('departments', 'departmentName')
+        .populate("organizer", "name email departments")
+        .populate("host", "name email departments")
+        .populate("participants", "name email departments")
+        .populate("departments", "departmentName")
         .sort({ createdAt: -1 });
 
       res.json({
         success: true,
-        data: meetings
+        data: meetings,
       });
-
     } catch (error: any) {
       console.error("Error fetching meetings:", error);
       res.status(500).json({
         success: false,
-        message: error.message || "Failed to fetch meetings"
+        message: error.message || "Failed to fetch meetings",
       });
     }
   }
@@ -70,74 +72,115 @@ export class MeetingController {
         location,
         isVirtual,
         timeSlots,
-        remarks
+        remarks,
       } = req.body;
 
       // Check if user has permission to create meetings
-      const userPermissions = ROLE_PERMISSIONS[(req as any).user?.role as UserRole] || [];
-      if (!userPermissions.includes('create_meetings')) {
+      const userPermissions =
+        ROLE_PERMISSIONS[(req as any).user?.role as UserRole] || [];
+      if (!userPermissions.includes("create_meetings")) {
         return res.status(403).json({
           success: false,
-          message: "You do not have permission to create meetings"
+          message: "You do not have permission to create meetings",
         });
       }
 
       // Validate required fields
-      if (!organizer || !host || !participants || !scope || !title || !timeSlots || timeSlots.length === 0) {
+      if (
+        !organizer ||
+        !host ||
+        !participants ||
+        !scope ||
+        !title ||
+        !timeSlots ||
+        timeSlots.length === 0
+      ) {
         return res.status(400).json({
           success: false,
-          message: "Missing required fields"
+          message: "Missing required fields",
         });
       }
 
       // Validate meeting scope
-      if (!['general', 'departments', 'separate'].includes(scope)) {
+      if (!["general", "departments", "separate"].includes(scope)) {
         return res.status(400).json({
           success: false,
-          message: "Invalid meeting scope. Must be 'general', 'departments', or 'separate'"
+          message:
+            "Invalid meeting scope. Must be 'general', 'departments', or 'separate'",
         });
       }
 
       // Validate departments if scope is 'departments'
-      if (scope === 'departments' && (!departments || departments.length === 0)) {
+      if (
+        scope === "departments" &&
+        (!departments || departments.length === 0)
+      ) {
         return res.status(400).json({
           success: false,
-          message: "Departments are required when scope is 'departments'"
+          message: "Departments are required when scope is 'departments'",
         });
       }
 
       // Clear departments if scope is not 'departments'
-      const finalDepartments = scope === 'departments' ? departments : [];
+      const finalDepartments = scope === "departments" ? departments : [];
 
       // Check availability first
-      const availabilityResults = await MeetingService.checkAvailability(participants, timeSlots);
+      const availabilityResults = await MeetingService.checkAvailability(
+        participants,
+        timeSlots
+      );
 
       // Find participants with conflicts
       const participantsWithConflicts = [];
-      for (let slotIndex = 0; slotIndex < availabilityResults.length; slotIndex++) {
+      for (
+        let slotIndex = 0;
+        slotIndex < availabilityResults.length;
+        slotIndex++
+      ) {
         const slotResults = availabilityResults[slotIndex];
         for (const result of slotResults) {
-          if (result.status !== 'available') {
+          if (result.status !== "available") {
             // Get user details for the conflict
-            const employee = await mongoose.model('Employee').findById(result.employeeId);
+            const employee = await mongoose
+              .model("Employee")
+              .findById(result.employeeId);
             if (employee) {
+              let conflictingMeeting = undefined;
+              if (result.conflictingMeetingId) {
+                const meeting = await Meeting.findById(
+                  result.conflictingMeetingId
+                ).select("title timeSlots");
+                if (meeting) {
+                  conflictingMeeting = {
+                    id: meeting._id,
+                    title: meeting.title,
+                    timeSlots: meeting.timeSlots,
+                  };
+                }
+              }
               participantsWithConflicts.push({
                 userId: result.employeeId,
                 userName: employee.name,
                 isAvailable: false,
                 reason: result.reason,
-                conflictingMeeting: result.conflictingMeetingId ? {
-                  title: 'Existing meeting',
-                  startTime: 'Check availability logs',
-                  endTime: 'Check availability logs'
-                } : undefined
+                conflictingMeeting,
               });
             }
           }
         }
       }
 
-      // Create the meeting
+      // If there are conflicts, return response without creating meeting
+      if (participantsWithConflicts.length > 0) {
+        console.log(participantsWithConflicts);
+        return res.status(200).json({
+          success: false,
+          message: "Meeting conflicts detected",
+          conflicts: participantsWithConflicts,
+        });
+      }
+
+      // Create the meeting only if no conflicts
       const { meeting, availabilityLogs } = await MeetingService.createMeeting({
         organizer,
         host,
@@ -156,14 +199,12 @@ export class MeetingController {
         success: true,
         data: meeting,
         availabilityLogs,
-        conflicts: participantsWithConflicts.length > 0 ? participantsWithConflicts : undefined
       });
-
     } catch (error: any) {
       console.error("Error creating meeting:", error);
       res.status(500).json({
         success: false,
-        message: error.message || "Failed to create meeting"
+        message:  "Failed to create meeting !!",
       });
     }
   }
@@ -174,28 +215,31 @@ export class MeetingController {
       const meetingData = req.body;
 
       // Check permissions
-      const userPermissions = ROLE_PERMISSIONS[(req as any).user?.role as UserRole] || [];
-      if (!userPermissions.includes('create_meetings')) {
+      const userPermissions =
+        ROLE_PERMISSIONS[(req as any).user?.role as UserRole] || [];
+      if (!userPermissions.includes("create_meetings")) {
         return res.status(403).json({
           success: false,
-          message: "You do not have permission to create meetings"
+          message: "You do not have permission to create meetings",
         });
       }
 
-      const { meeting, availabilityLogs } = await MeetingService.createMeeting(meetingData, true);
+      const { meeting, availabilityLogs } = await MeetingService.createMeeting(
+        meetingData,
+        true
+      );
 
       res.status(201).json({
         success: true,
         data: meeting,
         availabilityLogs,
-        message: "Meeting created and schedules updated"
+        message: "Meeting created and schedules updated",
       });
-
     } catch (error: any) {
       console.error("Error force creating meeting:", error);
       res.status(500).json({
         success: false,
-        message: error.message || "Failed to create meeting"
+        message: "Failed to create meeting!!!",
       });
     }
   }
@@ -209,18 +253,22 @@ export class MeetingController {
       if (!userId) {
         return res.status(400).json({
           success: false,
-          message: "User ID is required"
+          message: "User ID is required",
         });
       }
 
       // Get user permissions
-      const userPermissions = ROLE_PERMISSIONS[requestingUser?.role as UserRole] || [];
+      const userPermissions =
+        ROLE_PERMISSIONS[requestingUser?.role as UserRole] || [];
 
       // Check if user can view meetings
-      if (!userPermissions.includes('view_all_meetings') && !userPermissions.includes('view_department_meetings')) {
+      if (
+        !userPermissions.includes("view_all_meetings") &&
+        !userPermissions.includes("view_department_meetings")
+      ) {
         return res.status(403).json({
           success: false,
-          message: "You do not have permission to view meetings"
+          message: "You do not have permission to view meetings",
         });
       }
 
@@ -232,14 +280,13 @@ export class MeetingController {
 
       res.json({
         success: true,
-        data: meetings
+        data: meetings,
       });
-
     } catch (error: any) {
       console.error("Error fetching user meetings:", error);
       res.status(500).json({
         success: false,
-        message: error.message || "Failed to fetch meetings"
+        message:  "Failed to fetch meetings !!!!",
       });
     }
   }
@@ -250,27 +297,26 @@ export class MeetingController {
       const { meetingId } = req.params;
 
       const meeting = await Meeting.findById(meetingId)
-        .populate('organizer', 'name email')
-        .populate('host', 'name email')
-        .populate('participants', 'name email');
+        .populate("organizer", "name email")
+        .populate("host", "name email")
+        .populate("participants", "name email");
 
       if (!meeting) {
         return res.status(404).json({
           success: false,
-          message: "Meeting not found"
+          message: "Meeting not found",
         });
       }
 
       res.json({
         success: true,
-        data: meeting
+        data: meeting,
       });
-
     } catch (error: any) {
       console.error("Error fetching meeting:", error);
       res.status(500).json({
         success: false,
-        message: error.message || "Failed to fetch meeting"
+        message: error.message || "Failed to fetch meeting",
       });
     }
   }
@@ -289,28 +335,39 @@ export class MeetingController {
         { ...updateData, updatedAt: new Date() },
         { new: true }
       )
-        .populate('organizer', 'name email')
-        .populate('host', 'name email')
-        .populate('participants', 'name email')
-        .populate('departments', 'departmentName');
+        .populate("organizer", "name email")
+        .populate("host", "name email")
+        .populate("participants", "name email")
+        .populate("departments", "departmentName");
 
       if (!meeting) {
         return res.status(404).json({
           success: false,
-          message: "Meeting not found"
+          message: "Meeting not found",
         });
       }
 
       // If status changed to completed or cancelled, clean up availability
-      if (updateData.status && (updateData.status === 'completed' || updateData.status === 'cancelled') && currentMeeting) {
-        const allAffectedUsers = [currentMeeting.host, ...currentMeeting.participants];
+      if (
+        updateData.status &&
+        (updateData.status === "completed" ||
+          updateData.status === "cancelled") &&
+        currentMeeting
+      ) {
+        const allAffectedUsers = [
+          currentMeeting.host,
+          ...currentMeeting.participants,
+        ];
         for (const userId of allAffectedUsers) {
           for (const slot of currentMeeting.timeSlots) {
             await Availability.deleteMany({
               employeeId: userId,
               startTime: new Date(slot.startTime),
               endTime: new Date(slot.endTime),
-              reason: { $regex: `Meeting: ${currentMeeting.title}`, $options: 'i' }
+              reason: {
+                $regex: `Meeting: ${currentMeeting.title}`,
+                $options: "i",
+              },
             });
           }
         }
@@ -318,14 +375,13 @@ export class MeetingController {
 
       res.json({
         success: true,
-        data: meeting
+        data: meeting,
       });
-
     } catch (error: any) {
       console.error("Error updating meeting:", error);
       res.status(500).json({
         success: false,
-        message: error.message || "Failed to update meeting"
+        message: error.message || "Failed to update meeting",
       });
     }
   }
@@ -336,23 +392,23 @@ export class MeetingController {
       const { meetingId } = req.params;
       const { timeSlots, forceSchedule = false } = req.body;
 
-      const { meeting, availabilityLogs } = await MeetingService.updateMeetingTimeSlots(
-        meetingId,
-        timeSlots,
-        forceSchedule
-      );
+      const { meeting, availabilityLogs } =
+        await MeetingService.updateMeetingTimeSlots(
+          meetingId,
+          timeSlots,
+          forceSchedule
+        );
 
       res.json({
         success: true,
         data: meeting,
-        availabilityLogs
+        availabilityLogs,
       });
-
     } catch (error: any) {
       console.error("Error updating meeting time slots:", error);
       res.status(500).json({
         success: false,
-        message: error.message || "Failed to update meeting time slots"
+        message: error.message || "Failed to update meeting time slots",
       });
     }
   }
@@ -364,14 +420,14 @@ export class MeetingController {
 
       const meeting = await Meeting.findByIdAndUpdate(
         meetingId,
-        { status: 'cancelled' },
+        { status: "cancelled" },
         { new: true }
       );
 
       if (!meeting) {
         return res.status(404).json({
           success: false,
-          message: "Meeting not found"
+          message: "Meeting not found",
         });
       }
 
@@ -383,21 +439,20 @@ export class MeetingController {
             employeeId: userId,
             startTime: new Date(slot.startTime),
             endTime: new Date(slot.endTime),
-            reason: { $regex: `Meeting: ${meeting.title}`, $options: 'i' }
+            reason: { $regex: `Meeting: ${meeting.title}`, $options: "i" },
           });
         }
       }
 
       res.json({
         success: true,
-        message: "Meeting cancelled successfully"
+        message: "Meeting cancelled successfully",
       });
-
     } catch (error: any) {
       console.error("Error deleting meeting:", error);
       res.status(500).json({
         success: false,
-        message: error.message || "Failed to delete meeting"
+        message: error.message || "Failed to delete meeting",
       });
     }
   }
@@ -411,14 +466,13 @@ export class MeetingController {
 
       res.json({
         success: true,
-        data: logs
+        data: logs,
       });
-
     } catch (error: any) {
       console.error("Error fetching availability logs:", error);
       res.status(500).json({
         success: false,
-        message: error.message || "Failed to fetch availability logs"
+        message: error.message || "Failed to fetch availability logs",
       });
     }
   }
@@ -431,7 +485,7 @@ export class MeetingController {
       if (!date) {
         return res.status(400).json({
           success: false,
-          message: "Date is required"
+          message: "Date is required",
         });
       }
 
@@ -444,14 +498,13 @@ export class MeetingController {
 
       res.json({
         success: true,
-        data: availableSlots
+        data: availableSlots,
       });
-
     } catch (error: any) {
       console.error("Error fetching available slots:", error);
       res.status(500).json({
         success: false,
-        message: error.message || "Failed to fetch available slots"
+        message: error.message || "Failed to fetch available slots",
       });
     }
   }

@@ -19,12 +19,20 @@ export const meetingService = {
           conflicts: response.data.conflicts
         };
       }
-      return { success: false, message: 'Failed to create meeting' };
+      // If not success, but has conflicts, return them
+      if (response.data.conflicts) {
+        return {
+          success: false,
+          conflicts: response.data.conflicts,
+          message: 'Conflicts detected'
+        };
+      }
+      return { success: false, message: response.data.message || 'Failed to create meeting due to conflicts' };
     } catch (error: any) {
       console.error('Error creating meeting:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Failed to create meeting'
+        message: error.response?.data?.message || 'Failed to create meeting due to conflicts '
       };
     }
   },

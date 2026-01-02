@@ -20,7 +20,7 @@ export const availabilityService = {
     date: string
   ): Promise<AvailabilityResponse> => {
     try {
-      console.log("Making the API call");
+      // console.log("Making the API call");
       const response = await API.get(
         `/availability?employeeId=${employeeId}&date=${date}`
       );
