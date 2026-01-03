@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/Button";
 import type { Meeting } from "@/types/meeting";
 import { PermissionGuard } from "../auth/PermissionGuard";
 
+type Participant = string | { name?: string; fullName?: string; email?: string };
+
 interface MeetingsGridProps {
   meetings: Meeting[];
   onEdit?: (meeting: Meeting) => void;
@@ -57,7 +59,7 @@ export const MeetingsGrid: React.FC<MeetingsGridProps> = ({
     }
   };
 
-  const getParticipantNames = (participants: any[] | undefined) => {
+  const getParticipantNames = (participants: Participant[] | undefined) => {
     if (!Array.isArray(participants)) return [];
 
     return participants
@@ -202,7 +204,7 @@ export const MeetingsGrid: React.FC<MeetingsGridProps> = ({
                     className="text-destructive hover:text-destructive"
                     onClick={(e) => {
                       e.stopPropagation();
-                      meeting._id && onDelete(meeting._id);
+                      if (meeting._id) onDelete(meeting._id);
                     }}
                   >
                     <Trash2 className="h-4 w-4" />

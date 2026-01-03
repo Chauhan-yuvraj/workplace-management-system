@@ -14,22 +14,15 @@ export class MeetingController {
 
       let query: any = { status: { $ne: "cancelled" } };
 
-      // Filter based on permissions and meeting scope
+      // Filter based on permissions
       if (userPermissions.includes("view_all_meetings")) {
         // Admin and HR can see all meetings
         query = { status: { $ne: "cancelled" } };
       } else if (userPermissions.includes("view_department_meetings")) {
-        // Managers and employees can see meetings based on scope
+        // Managers and employees can see meetings based on departments
         query = {
           status: { $ne: "cancelled" },
-          $or: [
-            { scope: "general" }, // All general meetings
-            {
-              scope: "departments",
-              departments: { $in: user.departments || [] },
-            }, // Department-specific meetings
-            // Note: 'separate' meetings are only visible to admins/HR
-          ],
+          departments: { $in: user.departments || [] },
         };
       } else {
         return res.status(403).json({
@@ -65,7 +58,6 @@ export class MeetingController {
         organizer,
         host,
         participants,
-        scope,
         departments,
         title,
         agenda,
@@ -89,8 +81,6 @@ export class MeetingController {
       if (
         !organizer ||
         !host ||
-        !participants ||
-        !scope ||
         !title ||
         !timeSlots ||
         timeSlots.length === 0
@@ -101,29 +91,16 @@ export class MeetingController {
         });
       }
 
-      // Validate meeting scope
-      if (!["general", "departments", "separate"].includes(scope)) {
-        return res.status(400).json({
-          success: false,
-          message:
-            "Invalid meeting scope. Must be 'general', 'departments', or 'separate'",
-        });
-      }
-
-      // Validate departments if scope is 'departments'
+      // Validate that at least departments or participants are provided
       if (
-        scope === "departments" &&
-        (!departments || departments.length === 0)
+        (!departments || departments.length === 0) &&
+        (!participants || participants.length === 0)
       ) {
         return res.status(400).json({
           success: false,
-          message: "Departments are required when scope is 'departments'",
+          message: "At least one department or participant must be selected",
         });
       }
-
-      // Clear departments if scope is not 'departments'
-      const finalDepartments = scope === "departments" ? departments : [];
-
 
       // Check availability first
       const people = [host, ...participants];
@@ -131,8 +108,6 @@ export class MeetingController {
         people,
         timeSlots
       );
-
-      console.log("availabilityResults :", availabilityResults);
 
       // Find participants with conflicts
       const participantsWithConflicts = [];
@@ -176,7 +151,6 @@ export class MeetingController {
 
       // If there are conflicts, return response without creating meeting
       if (participantsWithConflicts.length > 0) {
-        console.log(participantsWithConflicts);
         return res.status(200).json({
           success: false,
           message: "Meeting conflicts detected",
@@ -189,8 +163,7 @@ export class MeetingController {
         organizer,
         host,
         participants,
-        scope,
-        departments: finalDepartments,
+        departments,
         title,
         agenda,
         location,

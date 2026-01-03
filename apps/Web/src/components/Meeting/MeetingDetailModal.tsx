@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import type { Meeting } from "@/types/meeting";
 
+type Participant = string | { name?: string; fullName?: string; email?: string };
+
 interface MeetingDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -50,13 +52,13 @@ export default function MeetingDetailModal({
       case "completed":
         return "bg-gray-100 text-gray-800";
       case "cancelled":
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 text-red-200";
       default:
         return "bg-gray-100 text-gray-800";
     }
   };
 
-  const getParticipantNames = (participants: any[] | undefined) => {
+  const getParticipantNames = (participants: Participant[] | undefined) => {
     if (!Array.isArray(participants)) return [];
 
     return participants
@@ -146,7 +148,7 @@ export default function MeetingDetailModal({
                     <p className="text-sm text-muted-foreground">
                       {typeof meeting.host === "string"
                         ? meeting.host
-                        : (meeting.host as any)?.name || (meeting.host as any)?.email || "Unknown"}
+                        : (meeting.host as { name?: string; email?: string })?.name || (meeting.host as { name?: string; email?: string })?.email || "Unknown"}
                     </p>
                   </div>
                 </div>

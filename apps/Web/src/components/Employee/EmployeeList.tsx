@@ -55,7 +55,7 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({ employees, onEmploye
                   {employee.jobTitle}
                 </td>
                 <td className="p-4 align-middle">
-                  {(employee as any).departmentId?.departmentName || "-"}
+                  {(employee.departments?.[0] as { departmentName?: string })?.departmentName || "-"}
                 </td>
                 <td className="p-4 align-middle">
                   <span

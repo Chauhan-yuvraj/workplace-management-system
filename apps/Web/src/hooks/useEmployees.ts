@@ -61,7 +61,7 @@ export const useEmployees = () => {
       const matchesSearch =
         employee.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         employee.jobTitle?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (employee as any).departmentId?.departmentName?.toLowerCase().includes(searchQuery.toLowerCase());
+        (employee.departments?.[0] as { departmentName?: string })?.departmentName?.toLowerCase().includes(searchQuery.toLowerCase());
 
       return matchesSearch;
     });

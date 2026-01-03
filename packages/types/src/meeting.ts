@@ -3,8 +3,7 @@ export interface Meeting {
   organizer: string; // User ID of the organizer
   host: string; // User ID of the host
   participants: string[]; // Array of user IDs
-  scope: 'departments' | 'general' | 'separate'; // Meeting scope
-  departments: string[]; // Array of department IDs (only used when scope is 'departments')
+  departments: string[]; // Array of department IDs
   title: string;
   agenda?: string;
   location?: string; // Physical location or meeting link
@@ -26,8 +25,7 @@ export interface CreateMeetingRequest {
   organizer: string;
   host: string;
   participants: string[];
-  scope: 'departments' | 'general' | 'separate'; // Meeting scope
-  departments: string[]; // Only used when scope is 'departments'
+  departments: string[];
   title: string;
   agenda?: string;
   location?: string;

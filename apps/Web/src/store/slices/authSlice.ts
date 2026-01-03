@@ -67,7 +67,6 @@ export const loginUser = createAsyncThunk(
     async ({ email, password }: { email: string; password: string }, { rejectWithValue }) => {
         try {
             const response = await authService.login(email, password);
-            console.log(response)
             return response;
         } catch (error: unknown) {
             return rejectWithValue(error);
@@ -154,7 +153,6 @@ const authSlice = createSlice({
                         const decoded = jwtDecode<DecodedToken>(action.payload.accessToken);
                         state.permissions = decoded.permissions || [];
                         state.role = decoded.role || null;
-                        console.log(state.permissions)
                     } catch (error) {
                         console.error("Failed to decode token", error);
                         state.permissions = [];

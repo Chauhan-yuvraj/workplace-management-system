@@ -28,11 +28,12 @@ export const meetingService = {
         };
       }
       return { success: false, message: response.data.message || 'Failed to create meeting due to conflicts' };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating meeting:', error);
+      const err = error as { response?: { data?: { message?: string } } };
       return {
         success: false,
-        message: error.response?.data?.message || 'Failed to create meeting due to conflicts '
+        message: err.response?.data?.message || 'Failed to create meeting due to conflicts '
       };
     }
   },
@@ -46,11 +47,12 @@ export const meetingService = {
         return { success: true, data: response.data.data };
       }
       return { success: false, message: 'No meetings found' };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching meetings:', error);
+      const err = error as { response?: { data?: { message?: string } } };
       return {
         success: false,
-        message: error.response?.data?.message || 'Failed to fetch meetings'
+        message: err.response?.data?.message || 'Failed to fetch meetings'
       };
     }
   },
@@ -64,11 +66,12 @@ export const meetingService = {
         return { success: true, data: response.data.data };
       }
       return { success: false, message: 'Meeting not found' };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching meeting:', error);
+      const err = error as { response?: { data?: { message?: string } } };
       return {
         success: false,
-        message: error.response?.data?.message || 'Failed to fetch meeting'
+        message: err.response?.data?.message || 'Failed to fetch meeting'
       };
     }
   },
@@ -82,11 +85,12 @@ export const meetingService = {
         return { success: true, data: response.data.data };
       }
       return { success: false, message: 'Failed to update meeting' };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating meeting:', error);
+      const err = error as { response?: { data?: { message?: string } } };
       return {
         success: false,
-        message: error.response?.data?.message || 'Failed to update meeting'
+        message: err.response?.data?.message || 'Failed to update meeting'
       };
     }
   },
@@ -96,23 +100,25 @@ export const meetingService = {
     try {
       await api.delete(`/meetings/${meetingId}`);
       return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
       return {
         success: false,
-        message: error.response?.data?.message || 'Failed to delete meeting'
+        message: err.response?.data?.message || 'Failed to delete meeting'
       };
     }
   },
 
   // Get available time slots for scheduling
-  getAvailableSlots: async (date: string, duration: number = 30): Promise<{ success: boolean; data?: any[]; message?: string }> => {
+  getAvailableSlots: async (date: string, duration: number = 30): Promise<{ success: boolean; data?: unknown[]; message?: string }> => {
     try {
       const response = await api.get(`/meetings/available-slots?date=${date}&duration=${duration}`);
       return { success: true, data: response.data };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
       return {
         success: false,
-        message: error.response?.data?.message || 'Failed to fetch available slots'
+        message: err.response?.data?.message || 'Failed to fetch available slots'
       };
     }
   }

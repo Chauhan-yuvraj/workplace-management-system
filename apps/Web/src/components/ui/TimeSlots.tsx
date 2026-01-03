@@ -12,6 +12,16 @@ import type { TimeSlot } from '@/utils/timeSlots';
 // Re-export TimeSlot type for backward compatibility
 export type { TimeSlot };
 
+import type { Meeting } from "@/types/meeting";
+
+interface AvailabilityItem {
+  _id: string;
+  startTime: string;
+  endTime: string;
+  status: "UNAVAILABLE" | "OUT_OF_OFFICE" | "EMERGENCY";
+  reason?: string;
+}
+
 interface TimeSlotsProps {
   selectedDate?: Date;
   onSlotSelect?: (slot: TimeSlot) => void;
@@ -20,8 +30,8 @@ interface TimeSlotsProps {
   onSlotsUpdate?: (slots: TimeSlot[]) => void;
   onSlotsData?: (slots: TimeSlot[]) => void;
   onSlotsChange?: (slots: TimeSlot[]) => void;
-  availabilityData?: any[];
-  meetingsData?: any[];
+  availabilityData?: AvailabilityItem[];
+  meetingsData?: Meeting[];
   className?: string;
 }
 

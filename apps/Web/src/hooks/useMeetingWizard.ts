@@ -9,6 +9,8 @@ import type { RootState } from '@/store/store';
 import type { MeetingWizardStep, MeetingWizardFormData } from '@/constants/meetingWizard';
 import { validateMeetingWizardStep, canProceedToNextStep } from '@/utils/meetingWizard';
 
+type MeetingResult = { success: boolean; data?: unknown; conflicts?: unknown[] };
+
 interface UseMeetingWizardProps {
   isOpen: boolean;
   meetingToEdit?: Meeting | null;
@@ -141,8 +143,16 @@ export const useMeetingWizard = ({ isOpen, meetingToEdit }: UseMeetingWizardProp
     const endTime = new Date(startTime);
     endTime.setMinutes(endTime.getMinutes() + 30);
 
+    // Use local date to avoid timezone issues
+    const getLocalDateString = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
     const slotDateTime = {
-      date: selectedDate.toISOString().split('T')[0],
+      date: getLocalDateString(selectedDate),
       startTime: startTime.toISOString(),
       endTime: endTime.toISOString(),
     };
@@ -190,10 +200,16 @@ export const useMeetingWizard = ({ isOpen, meetingToEdit }: UseMeetingWizardProp
 
     setIsLoading(true);
     try {
+      // Ensure the organizer is included as a participant if not already the host
+      let participants = formData.participants;
+      if (formData.hostId !== user._id && !participants.includes(user._id)) {
+        participants = [...participants, user._id];
+      }
+
       const meetingData = {
         organizer: user._id,
         host: formData.hostId,
-        participants: formData.participants,
+        participants: participants,
         departments: formData.departments,
         title: formData.title,
         agenda: formData.agenda,
@@ -210,9 +226,9 @@ export const useMeetingWizard = ({ isOpen, meetingToEdit }: UseMeetingWizardProp
         result = await createMeeting(meetingData);
       }
 
-      if ((result as any)?.conflicts && (result as any).conflicts.length > 0) {
+      if ((result as MeetingResult)?.conflicts && (result as MeetingResult).conflicts!.length > 0) {
         // Show conflicts modal
-        setConflicts((result as any).conflicts);
+        setConflicts((result as MeetingResult).conflicts as ParticipantAvailability[]);
         setShowConflictsModal(true);
         return { success: result.success, data: result.data, hasConflicts: true };
       } else if (result?.success) {

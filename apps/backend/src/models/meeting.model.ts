@@ -5,8 +5,7 @@ export interface IMeeting {
   organizer: Schema.Types.ObjectId; // User ID of the organizer
   host: Schema.Types.ObjectId; // User ID of the host
   participants: Schema.Types.ObjectId[]; // Array of user IDs
-  scope: 'departments' | 'general' | 'separate'; // Meeting scope
-  departments: Schema.Types.ObjectId[]; // Array of department IDs (only when scope is 'departments')
+  departments: Schema.Types.ObjectId[]; // Array of department IDs
   title: string;
   agenda?: string;
   location?: string; // Physical location or meeting link
@@ -45,17 +44,10 @@ const meetingSchema = new Schema<IMeeting>(
       ref: "Employee",
       required: true,
     }],
-    scope: {
-      type: String,
-      enum: ['departments', 'general', 'separate'],
-      required: true,
-    },
     departments: [{
       type: Schema.Types.ObjectId,
       ref: "Department",
-      required: function() {
-        return this.scope === 'departments';
-      },
+      required: false,
     }],
     title: {
       type: String,
@@ -92,7 +84,6 @@ const meetingSchema = new Schema<IMeeting>(
 meetingSchema.index({ organizer: 1 });
 meetingSchema.index({ host: 1 });
 meetingSchema.index({ participants: 1 });
-meetingSchema.index({ scope: 1 });
 meetingSchema.index({ departments: 1 });
 meetingSchema.index({ status: 1 });
 meetingSchema.index({ "timeSlots.startTime": 1, "timeSlots.endTime": 1 });

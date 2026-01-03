@@ -128,7 +128,7 @@ export const StepHostParticipants: React.FC<StepHostParticipantsProps> = ({
       <div className="space-y-2">
         <Label htmlFor="hostId" className="text-sm font-medium">Host *</Label>
         <Select value={formData.hostId} onValueChange={onHostChange}>
-          <SelectTrigger className={`w-full ${!formData.hostId ? "border-destructive" : ""}`}>
+          <SelectTrigger className={`w-full py-8 ${!formData.hostId ? "border-destructive" : ""}`}>
             <SelectValue placeholder="Select host" />
           </SelectTrigger>
           <SelectContent>

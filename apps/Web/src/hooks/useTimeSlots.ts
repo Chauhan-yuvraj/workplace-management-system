@@ -12,8 +12,8 @@ interface UseTimeSlotsProps {
   onSlotsUpdate?: (slots: TimeSlot[]) => void;
   onSlotsData?: (slots: TimeSlot[]) => void;
   onSlotsChange?: (slots: TimeSlot[]) => void;
-  availabilityData?: any[];
-  meetingsData?: any[];
+  availabilityData?: unknown[];
+  meetingsData?: unknown[];
 }
 
 export const useTimeSlots = ({
@@ -47,7 +47,7 @@ export const useTimeSlots = ({
   useEffect(() => {
     if (selectedDate) {
       const newSlots = generateTimeSlots();
-      const mergedSlots = mergeSlotsWithData(newSlots, selectedDate, availabilityData, meetingsData);
+      const mergedSlots = mergeSlotsWithData(newSlots, availabilityData, meetingsData, selectedDate);
 
       setSlots(mergedSlots);
       onSlotsData?.(mergedSlots);
@@ -135,7 +135,7 @@ export const useTimeSlots = ({
     // Reset to the state before editing started - reload from availability data and meetings
     if (selectedDate) {
       const newSlots = generateTimeSlots();
-      const mergedSlots = mergeSlotsWithData(newSlots, selectedDate, availabilityData, meetingsData);
+      const mergedSlots = mergeSlotsWithData(newSlots, availabilityData, meetingsData, selectedDate);
 
       setSlots(mergedSlots);
       onSlotsData?.(mergedSlots);

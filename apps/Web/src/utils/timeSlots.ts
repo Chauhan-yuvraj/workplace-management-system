@@ -1,5 +1,9 @@
-import { TIME_SLOT_CONFIG, SLOT_STATUS, SLOT_TYPES, SLOT_DISPLAY_CONFIG } from '@/constants/timeSlots';
-import type { SlotType } from '@/constants/timeSlots';
+import {
+  TIME_SLOT_CONFIG,
+  SLOT_STATUS,
+  SLOT_DISPLAY_CONFIG,
+} from "@/constants/timeSlots";
+import type { SlotType } from "@/constants/timeSlots";
 
 export interface TimeSlot {
   time: string;
@@ -12,7 +16,7 @@ export interface TimeSlot {
 }
 
 export interface SlotDisplay {
-  icon: 'CheckCircle' | 'XCircle';
+  icon: "CheckCircle" | "XCircle";
   iconColor: string;
   text: string;
   textColor: string;
@@ -26,7 +30,12 @@ export interface SlotDisplay {
 export const generateTimeSlots = (): TimeSlot[] => {
   const slots: TimeSlot[] = [];
   const startTime = new Date();
-  startTime.setHours(TIME_SLOT_CONFIG.startHour, TIME_SLOT_CONFIG.startMinute, 0, 0);
+  startTime.setHours(
+    TIME_SLOT_CONFIG.startHour,
+    TIME_SLOT_CONFIG.startMinute,
+    0,
+    0
+  );
 
   const endTime = new Date();
   endTime.setHours(TIME_SLOT_CONFIG.endHour, TIME_SLOT_CONFIG.endMinute, 0, 0);
@@ -35,8 +44,8 @@ export const generateTimeSlots = (): TimeSlot[] => {
 
   while (currentTime <= endTime) {
     const timeString = currentTime.toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
+      hour: "2-digit",
+      minute: "2-digit",
       hour12: true,
     });
 
@@ -46,7 +55,9 @@ export const generateTimeSlots = (): TimeSlot[] => {
     });
 
     // Add interval minutes
-    currentTime.setMinutes(currentTime.getMinutes() + TIME_SLOT_CONFIG.intervalMinutes);
+    currentTime.setMinutes(
+      currentTime.getMinutes() + TIME_SLOT_CONFIG.intervalMinutes
+    );
   }
 
   return slots;
@@ -114,8 +125,8 @@ export const canEditSlot = (slot: TimeSlot, selectedDate: Date): boolean => {
     const minutes = parseInt(timeMatch[2]);
     const ampm = timeMatch[3].toUpperCase();
 
-    if (ampm === 'PM' && hours !== 12) hours += 12;
-    if (ampm === 'AM' && hours === 12) hours = 0;
+    if (ampm === "PM" && hours !== 12) hours += 12;
+    if (ampm === "AM" && hours === 12) hours = 0;
 
     const slotTime = new Date();
     slotTime.setHours(hours, minutes, 0, 0);
@@ -151,8 +162,8 @@ export const isSlotInPast = (slot: TimeSlot, selectedDate: Date): boolean => {
     const minutes = parseInt(timeMatch[2]);
     const ampm = timeMatch[3].toUpperCase();
 
-    if (ampm === 'PM' && hours !== 12) hours += 12;
-    if (ampm === 'AM' && hours === 12) hours = 0;
+    if (ampm === "PM" && hours !== 12) hours += 12;
+    if (ampm === "AM" && hours === 12) hours = 0;
 
     const slotTime = new Date();
     slotTime.setHours(hours, minutes, 0, 0);
@@ -170,32 +181,90 @@ export const isSlotInPast = (slot: TimeSlot, selectedDate: Date): boolean => {
  */
 export const mergeSlotsWithData = (
   slots: TimeSlot[],
-  selectedDate: Date,
-  availabilityData?: any[],
-  meetingsData?: any[]
+  availabilityData?: unknown[],
+  meetingsData?: unknown[],
+  selectedDate?: Date
 ): TimeSlot[] => {
   // Create availability map
   const availabilityMap = new Map();
   if (availabilityData && availabilityData.length > 0) {
-    availabilityData.forEach((avail: any) => {
-      const startTime = new Date(avail.startTime);
+    availabilityData.forEach((avail: unknown) => {
+      const a = avail as { startTime: string; endTime: string; status: string; reason?: string };
+      const startTime = new Date(a.startTime);
       const timeString = startTime.toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
+        hour: "2-digit",
+        minute: "2-digit",
         hour12: true,
       });
-      availabilityMap.set(timeString, avail);
+      availabilityMap.set(timeString, a);
     });
   }
 
-  // Merge slots with availability
+  // Create meetings map for booked slots
+  const meetingsMap = new Map();
+  if (meetingsData && meetingsData.length > 0) {
+    meetingsData.forEach((meeting: unknown) => {
+      const m = meeting as {
+        title: string;
+        host: string | { _id: string; name: string; email: string };
+        hostName?: string;
+        participants: string[];
+        timeSlots: { date: string; startTime: string; endTime: string }[];
+        isVirtual?: boolean;
+        location?: string;
+      };
+      
+      // For each time slot in the meeting, mark it as booked
+      m.timeSlots.forEach((slot) => {
+        // Only process slots for the selected date
+        if (selectedDate) {
+          const slotDate = new Date(slot.date);
+          const selectedDateOnly = new Date(selectedDate);
+          selectedDateOnly.setHours(0, 0, 0, 0);
+          slotDate.setHours(0, 0, 0, 0);
+          
+          if (slotDate.getTime() !== selectedDateOnly.getTime()) {
+            return; // Skip slots not on selected date
+          }
+        }
+        
+        const slotStartTime = new Date(slot.startTime);
+        const timeString = slotStartTime.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        });
+        
+        // Only mark if this slot hasn't been marked by availability
+        if (!meetingsMap.has(timeString)) {
+          meetingsMap.set(timeString, {
+            booked: true,
+            reason: m.title,
+            person: m.hostName || (typeof m.host === 'string' ? m.host : m.host.name),
+            type: "meeting" as SlotType,
+            meetingLink: m.isVirtual ? m.location : undefined,
+          });
+        }
+      });
+    });
+  }
+
+  // Merge slots with availability and meetings
   return slots.map((slot) => {
     const availability = availabilityMap.get(slot.time);
+    const meeting = meetingsMap.get(slot.time);
 
-    if (availability) {
+    if (meeting) {
+      // Meeting takes precedence over availability
       return {
         ...slot,
-        available: availability.status === 'UNAVAILABLE' ? false : true,
+        available: false,
+        ...meeting,
+      };
+    } else if (availability) {
+      return {
+        ...slot,
+        available: availability.status === "UNAVAILABLE" ? false : true,
         reason: availability.reason || undefined,
       };
     }
@@ -207,9 +276,9 @@ export const mergeSlotsWithData = (
  * Format date for display in time slots header
  */
 export const formatDateForDisplay = (date: Date): string => {
-  return date.toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'short',
-    day: 'numeric',
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
   });
 };

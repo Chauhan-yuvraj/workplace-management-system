@@ -41,11 +41,11 @@ export const SLOT_DISPLAY_CONFIG = {
   },
   [SLOT_STATUS.BOOKED]: {
     icon: 'XCircle' as const,
-    iconColor: 'text-red-600',
+    iconColor: 'text-white',
     text: 'Booked',
-    textColor: 'text-red-700',
-    bgColor: 'bg-red-100 border-red-300 text-red-800',
-    hoverBgColor: 'hover:bg-red-200',
+    textColor: 'text-white',
+    bgColor: 'bg-red-500 border-red-600',
+    hoverBgColor: 'hover:bg-red-600',
   },
   [SLOT_STATUS.UNAVAILABLE]: {
     icon: 'XCircle' as const,

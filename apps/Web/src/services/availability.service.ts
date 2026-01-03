@@ -9,7 +9,7 @@ export interface AvailabilitySlot {
 
 export interface AvailabilityResponse {
   success: boolean;
-  data?: any[];
+  data?: unknown[];
   message?: string;
 }
 

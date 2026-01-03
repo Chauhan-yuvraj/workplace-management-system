@@ -62,7 +62,7 @@ export default function Departments() {
     e.preventDefault();
     try {
       // Prepare data - only include departmentHod if it's not empty
-      const submitData: any = {
+      const submitData: Record<string, unknown> = {
         departmentName: formData.departmentName.trim(),
         departmentCode: formData.departmentCode.trim(),
         departmentDescription: formData.departmentDescription.trim(),
@@ -81,9 +81,10 @@ export default function Departments() {
       }
       fetchDepartments();
       handleCloseModal();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error saving department", error);
-      const errorMessage = error.response?.data?.message || error.message || "Failed to save department";
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
+      const errorMessage = err.response?.data?.message || err.message || "Failed to save department";
       alert(errorMessage);
     }
   };

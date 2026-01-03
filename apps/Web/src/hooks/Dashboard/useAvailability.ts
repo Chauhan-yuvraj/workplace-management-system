@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
 import { availabilityService, type AvailabilitySlot } from "@/services/availability.service";
 import { useMeetings } from "@/hooks/useMeetings";
+import { useEmployees } from "@/hooks/useEmployees";
 import type { TimeSlot } from "@/components/ui/TimeSlots";
 
 interface AvailabilityItem {
@@ -23,12 +24,24 @@ export const useAvailability = () => {
   const [slotsData, setSlotsData] = useState<TimeSlot[]>([]);
   const { user } = useSelector((state: RootState) => state.auth);
   const { meetings, fetchMeetings } = useMeetings(user?._id);
+  const { employees } = useEmployees();
 
   // Filter meetings to only include those where user is a participant or host
-  const userMeetings = useMemo(() => meetings.filter(meeting => 
-    meeting.host === user?._id || 
-    (meeting.participants && user?._id && meeting.participants.some((p: any) => p._id === user._id || p === user._id))
+  const userMeetings = useMemo(() => meetings.filter(meeting =>
+    (typeof meeting.host === 'string' ? meeting.host : meeting.host._id) === user?._id ||
+    (meeting.participants && user?._id && meeting.participants.some((p: string | { _id: string }) => (p as { _id?: string })?._id === user._id || p === user._id))
   ), [meetings, user?._id]);
+
+  // Resolve host names for meetings
+  const userMeetingsWithNames = useMemo(() => {
+    return userMeetings.map(meeting => {
+      const hostEmployee = employees.find(emp => emp._id === (typeof meeting.host === 'string' ? meeting.host : meeting.host._id));
+      return {
+        ...meeting,
+        hostName: hostEmployee ? hostEmployee.name : (typeof meeting.host === 'string' ? meeting.host : meeting.host.name),
+      };
+    });
+  }, [userMeetings, employees]);
 
   // Load meetings when user changes
   useEffect(() => {
@@ -46,8 +59,8 @@ export const useAvailability = () => {
 
       try {
         // console.log("making api call from dashboard");
-        const dateString = date.getFullYear() + '-' + 
-          String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+        const dateString = date.getFullYear() + '-' +
+          String(date.getMonth() + 1).padStart(2, '0') + '-' +
           String(date.getDate()).padStart(2, '0');
         const response = await availabilityService.getAvailability(
           user._id,
@@ -55,7 +68,7 @@ export const useAvailability = () => {
         );
         // console.log("response :", response);
         if (response.success && response.data) {
-          setAvailabilityData(response.data);
+          setAvailabilityData(response.data as AvailabilityItem[]);
         } else {
           setAvailabilityData([]);
         }
@@ -144,15 +157,15 @@ export const useAvailability = () => {
       }
 
       // Refresh availability data after updates
-      const dateString = date.getFullYear() + '-' + 
-        String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+      const dateString = date.getFullYear() + '-' +
+        String(date.getMonth() + 1).padStart(2, '0') + '-' +
         String(date.getDate()).padStart(2, '0');
       const response = await availabilityService.getAvailability(
         user._id,
         dateString
       );
       if (response.success && response.data) {
-        setAvailabilityData(response.data);
+        setAvailabilityData(response.data as AvailabilityItem[]);
       } else {
         setAvailabilityData([]);
       }
@@ -180,12 +193,12 @@ export const useAvailability = () => {
 
         // Refresh availability for current date
         if (date) {
-          const dateString = date.getFullYear() + '-' + 
-            String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+          const dateString = date.getFullYear() + '-' +
+            String(date.getMonth() + 1).padStart(2, '0') + '-' +
             String(date.getDate()).padStart(2, '0');
           const response = await availabilityService.getAvailability(user._id, dateString);
           if (response.success && response.data) {
-            setAvailabilityData(response.data);
+            setAvailabilityData(response.data as AvailabilityItem[]);
           } else {
             setAvailabilityData([]);
           }
@@ -202,7 +215,7 @@ export const useAvailability = () => {
     selectedSlot,
     availabilityData,
     slotsData,
-    meetings: userMeetings,
+    meetings: userMeetingsWithNames,
     handleSlotSelect,
     handleSlotsUpdate,
     handleSlotsData,

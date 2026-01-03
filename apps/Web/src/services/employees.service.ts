@@ -22,7 +22,6 @@ export const fetchActiveEmployees = async (): Promise<ActiveEmployeeOption[]> =>
   try {
     const response = await API.get<ActiveEmployeeApiResponse>("/employees/active-list");
     if (response.data && Array.isArray(response.data.data)) {
-      // console.log("response.data", response.data)
       return response.data.data;
     }
     return [];

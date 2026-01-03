@@ -40,7 +40,7 @@ export const useMeetings = (userId?: string) => {
   ): Promise<{
     success: boolean;
     data?: Meeting;
-    conflicts?: any[];
+    conflicts?: unknown[];
     message?: string;
   }> => {
     setLoading(true);
@@ -60,8 +60,8 @@ export const useMeetings = (userId?: string) => {
         console.log("Meeting Faied", response);
         return { success: false, message: response.message, conflicts: response.conflicts };
       }
-    } catch (err) {
-      setError("Failed to create meeting");
+    } catch (_err) {
+      setError("Failed to create meeting" + _err);
       return { success: false, message: "Failed to create meeting due to " };
     } finally {
       setLoading(false);
@@ -91,8 +91,8 @@ export const useMeetings = (userId?: string) => {
         setError(response.message || "Failed to update meeting");
         return { success: false, message: response.message };
       }
-    } catch (err) {
-      setError("Failed to update meeting");
+    } catch (_err) {
+      setError("Failed to update meeting" + _err);
       return { success: false, message: "Failed to update meeting" };
     } finally {
       setLoading(false);
@@ -114,8 +114,8 @@ export const useMeetings = (userId?: string) => {
         setError(response.message || "Failed to delete meeting");
         return { success: false, message: response.message };
       }
-    } catch (err) {
-      setError("Failed to delete meeting");
+    } catch (_err) {
+      setError("Failed to delete meeting" + _err);
       return { success: false, message: "Failed to delete meeting" };
     } finally {
       setLoading(false);

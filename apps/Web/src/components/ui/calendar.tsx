@@ -11,7 +11,10 @@ import {
 } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
-import  { Button, buttonVariants } from "./Button"
+import  { Button } from "./Button"
+import { buttonVariants } from "./button-variants"
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 function Calendar({
   className,
