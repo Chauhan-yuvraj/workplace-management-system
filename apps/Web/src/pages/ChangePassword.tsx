@@ -11,7 +11,7 @@ const ChangePassword = () => {
               Change Password
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              Please update your password to continue
+              Please update your password to continue!
             </p>
           </div>
           <ChangePasswordForm />
