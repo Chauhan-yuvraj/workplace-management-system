@@ -1,7 +1,7 @@
 export interface Meeting {
   _id?: string;
   organizer: string; // User ID of the organizer
-  host: string; // User ID of the host
+  host: string | { _id: string; name: string; email?: string }; // User ID of the host or populated user object
   participants: string[]; // Array of user IDs
   departments: string[]; // Array of department IDs
   title: string;

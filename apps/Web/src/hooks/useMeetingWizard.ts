@@ -50,7 +50,7 @@ export const useMeetingWizard = ({ isOpen, meetingToEdit }: UseMeetingWizardProp
         // Populate form for editing
         setFormData({
           title: meetingToEdit.title || "",
-          hostId: meetingToEdit.host || "",
+          hostId: typeof meetingToEdit.host === 'string' ? meetingToEdit.host : meetingToEdit.host._id,
           participants: meetingToEdit.participants || [],
           departments: meetingToEdit.departments || [],
           location: meetingToEdit.location || "",
