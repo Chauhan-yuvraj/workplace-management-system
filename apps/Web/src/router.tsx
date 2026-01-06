@@ -14,6 +14,7 @@ import Meetings from "./pages/Dashbaord/Meetings/Meetings";
 import Departments from "./pages/Dashbaord/Departments/Departments";
 // import Projects from "./pages/Dashbaord/Projects/Projects";
 import DashboardLayout from "./components/layout/DashboardLayout";
+import ScheduleVisit from "./pages/Dashbaord/Visits/ScheduleVisit"
 
 export const router = createBrowserRouter([
   {
@@ -43,6 +44,10 @@ export const router = createBrowserRouter([
           {
             path: "visits",
             element: <Visits />,
+          },
+          {
+            path: "schedulevisit",
+            element: <ScheduleVisit />,
           },
           {
             path: "records",

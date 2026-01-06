@@ -1,12 +1,15 @@
+import { useNavigate } from "react-router-dom"; 
 import { useVisits } from "@/hooks/useVisits";
-import VisitModal from "@/components/Visit/VisitModal";
 import VisitProfileModal from "@/components/Visit/VisitProfileModal";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { PageControls } from "@/components/ui/PageControls";
 import { VisitGrid } from "@/components/Visit/VisitGrid";
 import { VisitList } from "@/components/Visit/VisitList";
+import type { Visit } from "@/types/visit";
 
 export default function Visits() {
+  const navigate = useNavigate();
+  
   const {
     visits,
     isLoading,
@@ -14,30 +17,30 @@ export default function Visits() {
     setViewMode,
     searchQuery,
     setSearchQuery,
-    isModalOpen,
-    setIsModalOpen,
     isProfileModalOpen,
     setIsProfileModalOpen,
     selectedVisit,
-    handleAddVisit,
     handleVisitClick,
-    handleEditFromProfile,
     handleDeleteVisit,
   } = useVisits();
 
+  // Navigation Handlers
+  const handleScheduleClick = () => {
+    navigate("/dashboard/schedulevisit");
+  };
+
+  const handleEditFromProfile = (visit: Visit) => {
+    setIsProfileModalOpen(false);
+    navigate(`/dashboard/visits/edit/${visit._id}`);
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-500">
       <PageHeader 
         title="Visits" 
         description="Schedule and manage visitor check-ins." 
         actionLabel="Schedule Visit" 
-        onAction={handleAddVisit} 
-      />
-
-      <VisitModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        visitToEdit={selectedVisit}
+        onAction={handleScheduleClick} 
       />
 
       <VisitProfileModal
@@ -53,7 +56,7 @@ export default function Visits() {
         onSearchChange={setSearchQuery}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
-        searchPlaceholder="Search visits..."
+        searchPlaceholder="Search visits by visitor or host..."
       />
 
       {isLoading ? (
