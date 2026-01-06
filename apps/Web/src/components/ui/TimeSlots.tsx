@@ -26,6 +26,8 @@ interface TimeSlotsProps {
   selectedDate?: Date;
   onSlotSelect?: (slot: TimeSlot) => void;
   selectedSlot?: string;
+  selectedSlots?: string[]; // ADDED: Support for multiple highlighted slots
+  variant?: 'default' | 'scheduling'; // ADDED: Context variant
   editMode?: boolean;
   onSlotsUpdate?: (slots: TimeSlot[]) => void;
   onSlotsData?: (slots: TimeSlot[]) => void;
@@ -39,6 +41,8 @@ export const TimeSlots: React.FC<TimeSlotsProps> = ({
   selectedDate,
   onSlotSelect,
   selectedSlot,
+  selectedSlots = [], // ADDED: Default to empty array
+  variant = 'default', // ADDED: Default variant
   editMode = false,
   onSlotsUpdate,
   onSlotsData,
@@ -102,7 +106,6 @@ export const TimeSlots: React.FC<TimeSlotsProps> = ({
         onCancelEdit={handleCancelEdit}
         onSaveChanges={handleSaveChanges}
       />
-
       {/* Empty state when no date is selected */}
       {!selectedDate ? (
         <TimeSlotsEmptyState />
@@ -113,23 +116,22 @@ export const TimeSlots: React.FC<TimeSlotsProps> = ({
             isEditing={isEditing}
             selectedSlotsCount={selectedSlotsForEdit.size}
           />
-
           {/* Time slots grid */}
           <TimeSlotsGrid
             slots={slots}
             isEditing={isEditing}
             selectedSlot={selectedSlot}
+            selectedSlots={selectedSlots} // PASSED: Pass multi-select array to Grid
+            variant={variant} // PASSED: Pass variant to Grid
             selectedSlotsForEdit={selectedSlotsForEdit}
             canEditSlot={canEditSlot}
             onSlotClick={handleSlotClickWrapper}
             selectedDate={selectedDate!}
           />
-
           {/* Legend for non-edit mode */}
           <TimeSlotsLegend isEditing={isEditing} />
         </>
       )}
-
       {/* Reason modal for marking slots unavailable */}
       <ReasonModal
         isOpen={reasonModalOpen}

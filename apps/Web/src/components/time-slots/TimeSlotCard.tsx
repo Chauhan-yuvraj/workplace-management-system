@@ -8,7 +8,9 @@ interface TimeSlotCardProps {
   slot: TimeSlot;
   index: number;
   isEditing: boolean;
-  selectedSlot?: string;
+  selectedSlots?: string[]; // Added: array of strings for multi-select
+  selectedSlot?: string;    // Kept for backward compatibility
+  variant?: 'default' | 'scheduling'; // Added: variant for context-specific styling
   selectedSlotsForEdit: Set<number>;
   canEditSlot: (slot: TimeSlot) => boolean;
   onSlotClick: (slot: TimeSlot, index: number) => void;
@@ -20,7 +22,9 @@ export const TimeSlotCard: React.FC<TimeSlotCardProps> = ({
   slot,
   index,
   isEditing,
+  selectedSlots = [], // Default to empty array
   selectedSlot,
+  variant = 'default',
   selectedSlotsForEdit,
   canEditSlot,
   onSlotClick,
@@ -29,8 +33,15 @@ export const TimeSlotCard: React.FC<TimeSlotCardProps> = ({
 }) => {
   const display = getSlotDisplay(slot);
   const IconComponent = display.icon === 'CheckCircle' ? CheckCircle : XCircle;
+  
   const isSelectedForEdit = selectedSlotsForEdit.has(index);
-  const isSelected = selectedSlot === slot.time && !isEditing;
+  
+  // Updated logic: Check if current time is in the selectedSlots array or matches selectedSlot
+  const isSelected = !isEditing && (
+    selectedSlot === slot.time || 
+    selectedSlots.includes(slot.time)
+  );
+
   const canEdit = canEditSlot(slot);
   const isInPast = isSlotInPast(slot, selectedDate);
 
@@ -43,42 +54,55 @@ export const TimeSlotCard: React.FC<TimeSlotCardProps> = ({
 
   return (
     <button
+      type="button"
       onClick={handleClick}
-      disabled={
-        isEditing && (slot.booked || !canEdit)
-      }
+      disabled={isEditing && (slot.booked || !canEdit)}
       className={cn(
         // Base styles
         'group relative flex flex-col items-center justify-center rounded-lg border transition-all duration-200 text-center min-h-[60px] sm:min-h-[70px] p-3 sm:p-4',
-        // Background and border
-        display.bgColor,
-        // Hover effects (improved - no scale to prevent layout shifts)
+        
+        // Background and border logic
+        !isEditing && isInPast
+          ? 'bg-gray-200 border-gray-500'
+          : isSelected 
+            ? variant === 'scheduling'
+              ? 'bg-blue-500 border-blue-600 shadow-md' // Bold blue for scheduling
+              : 'ring-2 ring-primary/50 shadow-md bg-primary/5' // Default dashboard style
+            : display.bgColor,
+
+        // Hover effects
         'hover:shadow-md hover:-translate-y-0.5',
-        // Selection states
-        isSelected && 'ring-2 ring-primary/50 shadow-md bg-primary/5',
+        
+        // Selection states (Editing mode)
         isSelectedForEdit && 'ring-2 ring-primary bg-primary/10 border-primary',
-        // Disabled states - only apply in editing mode
+        
+        // Disabled states
         isEditing && (slot.booked || !canEdit) && 'cursor-not-allowed opacity-60',
-        // Interactive states - all slots are clickable for viewing details in non-editing mode
+        
         'cursor-pointer',
-        // Custom className
         className
       )}
     >
       {/* Time display */}
-      <span className="text-sm sm:text-base font-semibold mb-1 leading-tight text-foreground">
+      <span className={cn(
+        "text-sm sm:text-base font-semibold mb-1 leading-tight",
+        (isSelected && variant === 'scheduling') ? "text-white" : "text-foreground"
+      )}>
         {slot.time}
       </span>
 
       {/* Status indicator */}
       <div className="flex items-center justify-center gap-1">
         <IconComponent
-          className={cn('h-4 w-4 shrink-0', display.iconColor)}
+          className={cn(
+            'h-4 w-4 shrink-0', 
+            (isSelected && variant === 'scheduling') ? "text-white" : display.iconColor
+          )}
         />
         <span
           className={cn(
             'text-xs sm:text-sm font-medium truncate max-w-full',
-            display.textColor
+            (isSelected && variant === 'scheduling') ? "text-blue-50" : display.textColor
           )}
         >
           {isInPast && !isEditing ? 'Past' : display.text}
@@ -87,12 +111,15 @@ export const TimeSlotCard: React.FC<TimeSlotCardProps> = ({
 
       {/* Additional info for booked slots */}
       {slot.booked && slot.person && (
-        <span className="text-xs text-muted-foreground mt-1 truncate max-w-full">
+        <span className={cn(
+          "text-xs mt-1 truncate max-w-full",
+          (isSelected && variant === 'scheduling') ? "text-blue-100" : "text-muted-foreground"
+        )}>
           {slot.person}
         </span>
       )}
 
-      {/* Reason tooltip on hover */}
+      {/* Reason tooltip */}
       {slot.reason && !isEditing && (
         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
           {slot.reason}
@@ -100,10 +127,16 @@ export const TimeSlotCard: React.FC<TimeSlotCardProps> = ({
         </div>
       )}
 
-      {/* Selection indicator */}
+      {/* Selection indicator dot */}
       {isSelected && !isEditing && (
-        <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full border-2 border-background flex items-center justify-center">
-          <div className="w-2 h-2 bg-primary-foreground rounded-full"></div>
+        <div className={cn(
+          "absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 flex items-center justify-center",
+          variant === 'scheduling' ? "bg-white border-blue-600" : "bg-primary border-background"
+        )}>
+          <div className={cn(
+            "w-2 h-2 rounded-full",
+            variant === 'scheduling' ? "bg-blue-600" : "bg-primary-foreground"
+          )}></div>
         </div>
       )}
     </button>

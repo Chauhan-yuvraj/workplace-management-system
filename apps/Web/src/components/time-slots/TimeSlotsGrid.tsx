@@ -8,6 +8,8 @@ interface TimeSlotsGridProps {
   slots: TimeSlot[];
   isEditing: boolean;
   selectedSlot?: string;
+  selectedSlots?: string[]; // Added to support multi-selection highlights
+  variant?: 'default' | 'scheduling'; // Added variant support
   selectedSlotsForEdit: Set<number>;
   canEditSlot: (slot: TimeSlot) => boolean;
   onSlotClick: (slot: TimeSlot, index: number) => void;
@@ -19,6 +21,8 @@ export const TimeSlotsGrid: React.FC<TimeSlotsGridProps> = ({
   slots,
   isEditing,
   selectedSlot,
+  selectedSlots = [], // Default to empty array
+  variant = 'default',
   selectedSlotsForEdit,
   canEditSlot,
   onSlotClick,
@@ -50,6 +54,8 @@ export const TimeSlotsGrid: React.FC<TimeSlotsGridProps> = ({
           index={index}
           isEditing={isEditing}
           selectedSlot={selectedSlot}
+          selectedSlots={selectedSlots} // Now passing the array to the card
+          variant={variant} // Now passing the variant to the card
           selectedSlotsForEdit={selectedSlotsForEdit}
           canEditSlot={canEditSlot}
           onSlotClick={onSlotClick}

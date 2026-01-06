@@ -6,7 +6,11 @@ import type { MeetingTimeSlot } from "@/types/meeting";
 interface StepTimeSlotsProps {
   selectedDate: Date | undefined;
   selectedSlots: MeetingTimeSlot[];
-  onSlotSelect: (slot: { time: string; available: boolean; booked?: boolean }) => void;
+  onSlotSelect: (slot: {
+    time: string;
+    available: boolean;
+    booked?: boolean;
+  }) => void;
 }
 
 export const StepTimeSlots: React.FC<StepTimeSlotsProps> = ({
@@ -33,42 +37,18 @@ export const StepTimeSlots: React.FC<StepTimeSlotsProps> = ({
             <TimeSlots
               selectedDate={selectedDate}
               onSlotSelect={onSlotSelect}
-              selectedSlot={undefined}
+              // Convert startTime to a string like "09:30 AM" to match the UI slots
+              selectedSlots={selectedSlots.map((s) =>
+                new Date(s.startTime).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              )}
+              variant="scheduling" // Added variant to trigger blue highlight
               editMode={false}
               availabilityData={[]}
             />
           </div>
-
-          {/* Selected Slots */}
-          {selectedSlots.length > 0 ? (
-            <div className="pt-2">
-              <p className="text-sm font-medium mb-2">
-                Selected time slots ({selectedSlots.length})
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {selectedSlots.map((slot, index) => (
-                  <span
-                    key={index}
-                    className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs md:text-sm"
-                  >
-                    {new Date(slot.startTime).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}{" "}
-                    –{" "}
-                    {new Date(slot.endTime).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <p className="text-xs md:text-sm text-muted-foreground pt-2">
-              Select at least one time slot to continue.
-            </p>
-          )}
         </div>
       </div>
     </div>
