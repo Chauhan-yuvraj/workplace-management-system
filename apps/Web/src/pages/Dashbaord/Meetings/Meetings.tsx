@@ -72,13 +72,35 @@ export default function Meetings() {
     }
   };
 
-  // Filter meetings based on search query
-  const filteredMeetings = meetings.filter((meeting) =>
-    meeting.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    meeting.agenda?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    meeting.location?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+// Filter meetings based on search query
+  const filteredMeetings = meetings.filter((meeting) => {
+    const query = searchQuery.toLowerCase();
 
+    // 1. Check basic meeting details
+    const matchesDetails =
+      meeting.title?.toLowerCase().includes(query) ||
+      meeting.agenda?.toLowerCase().includes(query) ||
+      meeting.location?.toLowerCase().includes(query);
+
+    // 2. Check participants safely
+    const matchesParticipants = meeting.participants?.some((participant) => {
+      if (!participant) return false;
+
+      // If participant is an object (e.g., { name: "John" })
+      if (typeof participant === 'object' && 'name' in participant) {
+        return (participant as { name: string }).name?.toLowerCase().includes(query);
+      }
+
+      // If participant is just a string (e.g., "John")
+      if (typeof participant === 'string') {
+        return participant.toLowerCase().includes(query);
+      }
+
+      return false;
+    });
+
+    return matchesDetails || matchesParticipants;
+  });
   return (
     <div className="space-y-6">
       <PageHeader 
